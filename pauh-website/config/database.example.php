@@ -11,7 +11,7 @@
 
 define('DB_HOST', 'localhost');
 define('DB_PORT', '3306');
-define('DB_NAME', 'db_pauh');
+define('DB_NAME', 'db_pauh_v2');
 define('DB_USER', 'db_user');
 define('DB_PASS', 'db_password');
 

@@ -36,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0d2542">
+    <link rel="icon" type="image/svg+xml" href="<?= e(BASE_URL) ?>/assets/favicon.svg">
     <title>Login Admin - <?= e(SITE_NAME) ?></title>
     <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/admin.css">
 </head>

@@ -95,7 +95,7 @@ require __DIR__ . '/includes/site_header.php';
 
                 <div class="grid-3">
                     <article class="card reveal">
-                        <img src="https://fk.unand.ac.id/wp-content/uploads/2023/12/AERIAL-VIEW-FK-UNAND-MEDIUM.jpg" alt="Kampus Universitas Andalas (Unand) di Pauh" class="card-img">
+                        <img loading="lazy" src="https://fk.unand.ac.id/wp-content/uploads/2023/12/AERIAL-VIEW-FK-UNAND-MEDIUM.jpg" alt="Kampus Universitas Andalas (Unand) di Pauh" class="card-img">
                         <div class="card-body">
                             <h3>Universitas Andalas (Unand)</h3>
                             <p>Kawasan perguruan tinggi tertua di luar Pulau Jawa yang berlokasi di perbukitan Limau Manis dengan lanskap pemandangan indah Kota Padang.</p>
@@ -103,7 +103,7 @@ require __DIR__ . '/includes/site_header.php';
                     </article>
 
                     <article class="card reveal">
-                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgYvzCjZNOMuFHaJlUezNN5kzBA31cbVXwg9-YqlWEw2tArwcf84_qid_N54NXbSdZBgMnpwMfzU-b0GefbjbwOYH7aTEoCfoqht8ra1Uq4NYIoQfIrJnBW_bEr6LpDq-JaUaA_wAgLU_NUOO0ufKvSf7GsCzHS-CF27PXCQIAJ-K2Yh-R_1E4HEN5iqxaZ/s1556/490743928_1388968985622464_7085951840122729520_n.jpg" alt="Wisata alam dan jembatan gantung Batu Busuk" class="card-img">
+                        <img loading="lazy" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgYvzCjZNOMuFHaJlUezNN5kzBA31cbVXwg9-YqlWEw2tArwcf84_qid_N54NXbSdZBgMnpwMfzU-b0GefbjbwOYH7aTEoCfoqht8ra1Uq4NYIoQfIrJnBW_bEr6LpDq-JaUaA_wAgLU_NUOO0ufKvSf7GsCzHS-CF27PXCQIAJ-K2Yh-R_1E4HEN5iqxaZ/s1556/490743928_1388968985622464_7085951840122729520_n.jpg" alt="Wisata alam dan jembatan gantung Batu Busuk" class="card-img">
                         <div class="card-body">
                             <h3>Wisata Alam & Sungai Batu Busuk</h3>
                             <p>Destinasi pemandian alam dan jembatan gantung ikonik dengan aliran sungai jernih di kaki bukit wilayah Kelurahan Lambung Bukit.</p>
@@ -111,7 +111,7 @@ require __DIR__ . '/includes/site_header.php';
                     </article>
 
                     <article class="card reveal">
-                        <img src="https://i0.wp.com/padangkita.com/wp-content/uploads/2023/01/IMG_9469.jpg?resize=750%2C487&ssl=1" alt="Agrowisata dan perkebunan di Kecamatan Pauh" class="card-img">
+                        <img loading="lazy" src="https://i0.wp.com/padangkita.com/wp-content/uploads/2023/01/IMG_9469.jpg?resize=750%2C487&ssl=1" alt="Agrowisata dan perkebunan di Kecamatan Pauh" class="card-img">
                         <div class="card-body">
                             <h3>Agrowisata & Lingkungan Asri</h3>
                             <p>Kecamatan Pauh kaya akan komoditas buah lokal seperti durian pauh, perbukitan hijau, serta aliran sungai penopang irigasi daerah.</p>
@@ -189,7 +189,7 @@ require __DIR__ . '/includes/site_header.php';
                     <div class="berita-grid" role="list">
                         <?php foreach ($latestNews as $item): ?>
                             <article class="berita-card reveal" role="listitem">
-                                <img src="<?= $item['thumbnail'] ? e(UPLOAD_URL . $item['thumbnail']) : 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80' ?>" alt="<?= e($item['title']) ?>" class="berita-img">
+                                <img loading="lazy" src="<?= $item['thumbnail'] ? e(UPLOAD_URL . $item['thumbnail']) : 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80' ?>" alt="<?= e($item['title']) ?>" class="berita-img">
                                 <div class="berita-meta">
                                     <span aria-label="Tanggal">📅 <?= e(formatTanggalIndo($item['published_at'])) ?></span>
                                     <?php if ($item['category_name']): ?>
@@ -224,7 +224,7 @@ require __DIR__ . '/includes/site_header.php';
                     <div class="gallery-grid" role="region" aria-label="Galeri foto">
                         <?php foreach ($galleryPhotos as $photo): ?>
                             <div class="gallery-item reveal" tabindex="0" role="button" aria-label="<?= e($photo['caption']) ?>">
-                                <img src="<?= e(GALLERY_UPLOAD_URL . $photo['image']) ?>" alt="<?= e($photo['caption']) ?>">
+                                <img loading="lazy" src="<?= e(GALLERY_UPLOAD_URL . $photo['image']) ?>" alt="<?= e($photo['caption']) ?>">
                                 <div class="gallery-overlay" aria-hidden="true">🔍</div>
                             </div>
                         <?php endforeach; ?>

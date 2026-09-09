@@ -147,3 +147,22 @@ PHP + MariaDB sungguhan (bukan hanya dibaca sekilas):
 
 Seluruh 37 file PHP juga lolos `php -l` (no syntax errors), dan kedua file
 JavaScript (`main.js`, `admin.js`) lolos pengecekan sintaks.
+
+## Finalisasi: Responsif & Polish
+
+- **Mobile & desktop**: seluruh halaman (landing page, `/news`, panel Admin,
+  installer) sudah diuji breakpoint-nya di lebar layar besar (desktop),
+  tablet (≤992px/≤900px), ponsel (≤768px), dan ponsel kecil (≤480px/≤380px).
+- **Panel Admin**: sidebar jadi off-canvas dengan backdrop gelap yang bisa
+  di-tap untuk menutup di layar kecil, otomatis tertutup saat memilih menu,
+  tabel bisa di-scroll horizontal tanpa merusak layout, kartu statistik
+  menyesuaikan jumlah kolom sesuai lebar layar.
+- **Installer**: form konfigurasi database & akun admin kini juga responsif
+  (sebelumnya belum ada breakpoint sama sekali).
+- **Favicon & theme-color** ditambahkan di semua halaman (landing page,
+  admin, installer).
+- **Lazy loading** (`loading="lazy"`) ditambahkan pada gambar-gambar konten
+  (potensi wilayah, berita, galeri) di halaman publik untuk mempercepat
+  waktu muat halaman.
+- Diperiksa juga tidak ada elemen dengan lebar tetap (fixed width) yang bisa
+  menyebabkan horizontal scroll tak diinginkan di layar sempit.

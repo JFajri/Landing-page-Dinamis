@@ -44,7 +44,7 @@ require __DIR__ . '/../includes/site_header.php';
                     <h1 class="section-title text-center" style="max-width:100%"><?= e($news['title']) ?></h1>
 
                     <?php if ($news['thumbnail']): ?>
-                        <img src="<?= e(UPLOAD_URL . $news['thumbnail']) ?>" alt="<?= e($news['title']) ?>"
+                        <img loading="lazy" src="<?= e(UPLOAD_URL . $news['thumbnail']) ?>" alt="<?= e($news['title']) ?>"
                              style="width:100%;max-height:420px;object-fit:cover;border-radius:16px;margin:24px 0;box-shadow:var(--shadow-sm)">
                     <?php endif; ?>
 

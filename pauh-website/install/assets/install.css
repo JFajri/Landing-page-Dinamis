@@ -53,3 +53,16 @@ legend{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6
 
 .actions-row{display:flex;gap:10px;margin-top:22px}
 .actions-row .btn{flex:1}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px){
+  body{padding:20px 12px}
+  .box{padding:24px 18px;border-radius:14px}
+  .form-row{grid-template-columns:1fr}
+  fieldset{padding:14px 14px 4px}
+}
+@media(max-width:380px){
+  .actions-row{flex-direction:column}
+  .header .icon{font-size:30px}
+  .header h1{font-size:16px}
+}

@@ -29,6 +29,8 @@ $pageDescription = $pageDescription ?? 'Portal Resmi Kecamatan Pauh, Kota Padang
     <meta name="twitter:title" content="<?= e($pageTitle) ?>">
     <meta name="twitter:description" content="<?= e($pageDescription) ?>">
     <link rel="canonical" href="<?= e(BASE_URL) ?>">
+    <link rel="icon" type="image/svg+xml" href="<?= e(BASE_URL) ?>/assets/favicon.svg">
+    <meta name="theme-color" content="#123b6d">
     <title><?= e($pageTitle) ?></title>
     <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/style.css">
 </head>

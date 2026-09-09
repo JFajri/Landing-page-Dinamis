@@ -1,10 +1,26 @@
 // ===== SIDEBAR TOGGLE (mobile) =====
 const sidebarToggle = document.getElementById('sidebar-toggle');
 const sidebar = document.getElementById('admin-sidebar');
+const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+function closeSidebar() {
+  if (sidebar) sidebar.classList.remove('open');
+  if (sidebarBackdrop) sidebarBackdrop.classList.remove('open');
+}
 
 if (sidebarToggle && sidebar) {
   sidebarToggle.addEventListener('click', () => {
     sidebar.classList.toggle('open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.toggle('open');
+  });
+}
+if (sidebarBackdrop) {
+  sidebarBackdrop.addEventListener('click', closeSidebar);
+}
+if (sidebar) {
+  // Tutup sidebar otomatis setelah memilih menu di layar kecil.
+  sidebar.querySelectorAll('nav a').forEach(link => {
+    link.addEventListener('click', closeSidebar);
   });
 }
 

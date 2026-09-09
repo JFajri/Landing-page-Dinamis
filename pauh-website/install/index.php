@@ -16,6 +16,8 @@ if (file_exists($lockFile)) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="robots" content="noindex, nofollow">
+        <meta name="theme-color" content="#0d2c52">
+        <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
         <title>Instalasi Sudah Selesai</title>
         <link rel="stylesheet" href="assets/install.css">
     </head>
@@ -46,6 +48,8 @@ if (file_exists($lockFile)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0d2c52">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <title>Installer - Portal Kecamatan Pauh</title>
     <link rel="stylesheet" href="assets/install.css">
 </head>

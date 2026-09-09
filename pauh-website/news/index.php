@@ -40,7 +40,7 @@ require __DIR__ . '/../includes/site_header.php';
                     <div class="berita-grid" role="list">
                         <?php foreach ($newsList as $item): ?>
                             <article class="berita-card reveal" role="listitem">
-                                <img src="<?= $item['thumbnail'] ? e(UPLOAD_URL . $item['thumbnail']) : 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80' ?>" alt="<?= e($item['title']) ?>" class="berita-img">
+                                <img loading="lazy" src="<?= $item['thumbnail'] ? e(UPLOAD_URL . $item['thumbnail']) : 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80' ?>" alt="<?= e($item['title']) ?>" class="berita-img">
                                 <div class="berita-meta">
                                     <span aria-label="Tanggal">📅 <?= e(formatTanggalIndo($item['published_at'])) ?></span>
                                     <?php if ($item['category_name']): ?>
