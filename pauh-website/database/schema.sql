@@ -83,3 +83,32 @@ CREATE TABLE IF NOT EXISTS complaints (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_complaints_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================================
+-- Ditambahkan pada tahap 3: Pengaturan situs & konten yang dapat dikelola
+-- (teks hero, warna, kontak, menu, statistik, potensi, kelurahan, layanan,
+-- jam operasional). Nilai awal diisi otomatis oleh seedDefaultContent()
+-- di includes/settings.php, bukan lewat file SQL ini.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS settings (
+    setting_key   VARCHAR(100) NOT NULL PRIMARY KEY,
+    setting_value TEXT DEFAULT NULL,
+    updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS content_items (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    section     VARCHAR(40)  NOT NULL,
+    title       VARCHAR(150) NOT NULL,
+    value       VARCHAR(100) DEFAULT NULL,
+    description VARCHAR(500) DEFAULT NULL,
+    icon        VARCHAR(20)  DEFAULT NULL,
+    image       VARCHAR(255) DEFAULT NULL,
+    link_url    VARCHAR(255) DEFAULT NULL,
+    sort_order  INT NOT NULL DEFAULT 0,
+    status      ENUM('active','inactive') NOT NULL DEFAULT 'active',
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_content_section (section, status, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

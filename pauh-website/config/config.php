@@ -40,6 +40,11 @@ define('UPLOAD_URL', BASE_URL . '/uploads/news/');
 define('GALLERY_UPLOAD_DIR', __DIR__ . '/../uploads/gallery/');
 define('GALLERY_UPLOAD_URL', BASE_URL . '/uploads/gallery/');
 
+// Path & URL upload aset situs (gambar hero, potensi wilayah, OG image, dll.
+// yang dikelola dari Admin > Pengaturan Situs / Konten Halaman)
+define('SITE_UPLOAD_DIR', __DIR__ . '/../uploads/site/');
+define('SITE_UPLOAD_URL', BASE_URL . '/uploads/site/');
+
 // Batas ukuran upload gambar (bytes) - 2MB
 define('UPLOAD_MAX_SIZE', 2 * 1024 * 1024);
 
