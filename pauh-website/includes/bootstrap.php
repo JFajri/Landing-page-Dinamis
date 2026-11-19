@@ -20,6 +20,7 @@ if (!file_exists($dbConfigFile) || !file_exists($lockFile)) {
 
 require_once $dbConfigFile;
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/settings.php';
 
 // Auto-sync skema database: kalau ada tabel baru di database/schema.sql yang
 // belum ada di database Anda (mis. setelah update fitur seperti Galeri/Kalender/
@@ -28,3 +29,8 @@ require_once __DIR__ . '/functions.php';
 // CREATE TABLE IF NOT EXISTS), dan hanya dijalankan sekali per perubahan
 // schema.sql (dicek lewat hash file) supaya tidak membebani setiap request.
 ensureDatabaseSchema(getConnection());
+
+// Isi konten awal (menu, statistik, potensi, kelurahan, layanan, jam kantor) satu
+// kali saja agar situs yang sudah berjalan tampil persis seperti sebelumnya dan
+// bisa langsung dikelola dari Admin. Tidak pernah menimpa data yang sudah ada.
+seedDefaultContent(getConnection());
