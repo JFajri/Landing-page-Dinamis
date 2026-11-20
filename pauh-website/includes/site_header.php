@@ -43,6 +43,7 @@ if (setting('footer.email') !== '') {
 if (setting('footer.phone') !== '') {
     $jsonLd['telephone'] = setting('footer.phone');
 }
+$jsonLd['logo'] = logoUrl();
 if ($ogImage !== '') {
     $jsonLd['image'] = $ogImage;
 }
@@ -59,7 +60,7 @@ if ($ogImage !== '') {
     <meta name="robots" content="<?= $noIndex ? 'noindex, follow' : 'index, follow' ?>">
     <meta name="theme-color" content="<?= e(settingColor('color.primary')) ?>">
     <link rel="canonical" href="<?= e($canonicalUrl) ?>">
-    <link rel="icon" type="image/svg+xml" href="<?= e(BASE_URL) ?>/assets/favicon.svg">
+    <?= faviconLinkTag() ?>
 
     <meta property="og:site_name" content="<?= e(setting('site.name')) ?>">
     <meta property="og:locale" content="id_ID">
@@ -96,7 +97,7 @@ if ($ogImage !== '') {
     <header class="navbar" id="navbar">
         <nav class="container nav-container" aria-label="Navigasi utama">
             <a class="logo-area" href="<?= e(BASE_URL) ?>/" data-home-link aria-label="<?= e(setting('site.name')) ?> — ke beranda">
-                <span class="logo-icon" aria-hidden="true"><?= e(setting('site.logo_emoji')) ?></span>
+                <span class="logo-icon" aria-hidden="true"><img src="<?= e(logoUrl()) ?>" alt="" width="42" height="42"></span>
                 <span class="logo-text">
                     <span class="brand-title"><?= e(setting('site.brand_title')) ?></span>
                     <span class="brand-subtitle"><?= e(setting('site.brand_subtitle')) ?></span>

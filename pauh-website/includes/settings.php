@@ -26,7 +26,7 @@ function siteDefaults(): array
         'site.name'           => 'Portal Resmi Kecamatan Pauh',
         'site.brand_title'    => 'KECAMATAN PAUH',
         'site.brand_subtitle' => 'Kota Padang, Sumatra Barat',
-        'site.logo_emoji'     => '🏛️',
+        'site.logo'           => '', // kosong = pakai assets/favicon.svg
         'site.home_title'     => 'Portal Resmi Kecamatan Pauh - Kota Padang | Layanan Publik Terpercaya',
         'site.description'    => 'Portal Resmi Kecamatan Pauh, Kota Padang. Pusat pendidikan tinggi dengan layanan administrasi warga yang transparan dan mudah diakses.',
         'site.keywords'       => 'Kecamatan Pauh, Padang, administrasi, layanan publik, kelurahan, Unand',
@@ -254,6 +254,26 @@ function mediaUrl(?string $value): string
         return $value;
     }
     return SITE_UPLOAD_URL . rawurlencode($value);
+}
+
+/**
+ * URL logo situs. Logo resmi yang diunggah di Admin > Identitas & SEO dipakai di navbar,
+ * panel admin, dan favicon browser; jika kosong, dipakai assets/favicon.svg bawaan.
+ * Untuk mengganti secara permanen lewat file, cukup timpa assets/favicon.svg.
+ */
+function logoUrl(): string
+{
+    $custom = mediaUrl(setting('site.logo'));
+    return $custom !== '' ? $custom : assetUrl('favicon.svg');
+}
+
+/** Tag <link rel="icon"> dengan type sesuai ekstensi logo. */
+function faviconLinkTag(): string
+{
+    $url  = logoUrl();
+    $ext  = strtolower(pathinfo((string) parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+    $mime = ['svg' => 'image/svg+xml', 'png' => 'image/png', 'webp' => 'image/webp', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg'][$ext] ?? '';
+    return '<link rel="icon"' . ($mime !== '' ? ' type="' . $mime . '"' : '') . ' href="' . e($url) . '">';
 }
 
 /** Aman-kan URL agar bisa disisipkan di dalam url('…') pada atribut style. */
@@ -519,7 +539,7 @@ function settingsSchema(): array
                 ['key' => 'site.name',           'label' => 'Nama situs', 'type' => 'text', 'max' => 100],
                 ['key' => 'site.brand_title',    'label' => 'Judul brand di navbar', 'type' => 'text', 'max' => 60],
                 ['key' => 'site.brand_subtitle', 'label' => 'Sub-judul brand di navbar', 'type' => 'text', 'max' => 80],
-                ['key' => 'site.logo_emoji',     'label' => 'Ikon logo (emoji)', 'type' => 'text', 'max' => 8],
+                ['key' => 'site.logo',           'label' => 'Logo resmi (juga dipakai sebagai favicon)', 'type' => 'image', 'hint' => 'Disarankan persegi, PNG/WEBP latar transparan minimal 256×256 px. Kosongkan untuk memakai logo bawaan (assets/favicon.svg).'],
                 ['key' => 'site.home_title',     'label' => 'Judul tab browser beranda', 'type' => 'text', 'max' => 120, 'hint' => 'Ideal 50–60 karakter agar tidak terpotong di hasil pencarian.'],
                 ['key' => 'site.description',    'label' => 'Deskripsi situs (meta description)', 'type' => 'textarea', 'max' => 300, 'hint' => 'Ideal 120–160 karakter.'],
                 ['key' => 'site.keywords',       'label' => 'Kata kunci', 'type' => 'text', 'max' => 250],

@@ -22,7 +22,7 @@ $newComplaintsCount = (int) getConnection()->query("SELECT COUNT(*) FROM complai
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#0d2542">
-    <link rel="icon" type="image/svg+xml" href="<?= e(BASE_URL) ?>/assets/favicon.svg">
+    <?= faviconLinkTag() ?>
     <title><?= e($pageTitle) ?> - Admin <?= e(SITE_NAME) ?></title>
     <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/admin.css">
 </head>
@@ -32,7 +32,7 @@ $newComplaintsCount = (int) getConnection()->query("SELECT COUNT(*) FROM complai
 
     <aside class="sidebar" id="admin-sidebar">
         <div class="brand">
-            <span class="icon">🏛️</span>
+            <img class="brand-logo" src="<?= e(logoUrl()) ?>" alt="" width="34" height="34">
             <div>
                 <h1>ADMIN PAUH</h1>
                 <p>Panel Pengelola Konten</p>

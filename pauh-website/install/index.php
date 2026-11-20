@@ -57,7 +57,7 @@ if (file_exists($lockFile)) {
 <div class="wrap">
     <div class="box">
         <div class="header">
-            <div class="icon">🏛️</div>
+            <div class="icon"><img src="../assets/favicon.svg" alt="" width="56" height="56"></div>
             <h1>Instalasi Portal Kecamatan Pauh</h1>
             <p>Lengkapi konfigurasi database dan buat akun admin untuk memulai.</p>
         </div>

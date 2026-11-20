@@ -50,9 +50,10 @@ img{max-width:100%}
 .logo-area{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
 .logo-icon{
   width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
-  background:linear-gradient(145deg,#fff,#eaf2fa);font-size:21px;
+  background:linear-gradient(145deg,#fff,#eaf2fa);overflow:hidden;
   box-shadow:0 5px 15px rgba(0,0,0,.12)
 }
+.logo-icon img{width:100%;height:100%;object-fit:contain;display:block}
 .logo-text{display:flex;flex-direction:column;line-height:1.35}
 .brand-title{font-size:14px;letter-spacing:.8px;font-weight:800;color:#cbd8e8}
 .brand-subtitle{font-size:10px;margin-top:1px;color:#cbd8e8}

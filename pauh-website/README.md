@@ -174,7 +174,7 @@ situs ini bisa diduplikasi untuk instansi/keperluan lain cukup dengan mengganti 
 
 | Menu Admin | Yang dikelola |
 |---|---|
-| Tampilan Website → Identitas & SEO | Nama situs, brand navbar, logo emoji, judul/deskripsi/kata kunci, gambar pratinjau sosial |
+| Tampilan Website → Identitas & SEO | Nama situs, brand navbar, **logo resmi (sekaligus favicon)**, judul/deskripsi/kata kunci, gambar pratinjau sosial |
 | Tampilan Website → Warna | Warna utama, sekunder, dan aksen (diterapkan ke seluruh halaman publik) |
 | Tampilan Website → Hero | Label, judul, deskripsi, dua tombol (teks + tautan), gambar latar |
 | Tampilan Website → Judul Section | Aktif/nonaktif + judul/deskripsi tiap section (`{count}` = jumlah otomatis) |
@@ -200,3 +200,10 @@ validasi, dan menu sidebar dibuat otomatis dari definisi tersebut (`includes/set
 - Kartu berita, potensi, dan layanan memakai pola *stretched link* (satu tautan, seluruh area kartu bisa diklik).
 - Skip link, `aria-current`, fokus keyboard terlihat, target sentuh ≥ 44px, `prefers-reduced-motion`,
   meta SEO (canonical, Open Graph, Twitter Card, JSON-LD), dan lightbox galeri berbasis `<dialog>`.
+
+## Mengganti Logo / Favicon
+
+Logo dipakai sebagai gambar (bukan emoji) di navbar, panel admin, dan favicon browser. Dua cara mengganti:
+1. **Lewat Admin** (disarankan): Tampilan Website → Identitas & SEO → *Logo resmi*. Unggah PNG/WEBP persegi
+   (min. 256×256 px, latar transparan) — navbar, admin, dan favicon berganti sekaligus.
+2. **Lewat file:** timpa `assets/favicon.svg` (dipakai jika logo di Admin kosong, dan oleh halaman instalasi).
