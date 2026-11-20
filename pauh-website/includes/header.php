@@ -6,7 +6,7 @@
  * oleh halaman pemanggil sebelum include file ini:
  *   $pageTitle   (string) judul halaman
  *   $activeMenu  (string) salah satu dari: dashboard, news, categories,
- *                gallery, calendar, complaints, settings-<grup>, content-<jenis>
+ *                gallery, calendar, complaints
  */
 $pageTitle  = $pageTitle  ?? 'Admin';
 $activeMenu = $activeMenu ?? '';
@@ -45,17 +45,7 @@ $newComplaintsCount = (int) getConnection()->query("SELECT COUNT(*) FROM complai
             <a href="<?= e(BASE_URL) ?>/admin/news/" class="<?= $activeMenu === 'news' ? 'active' : '' ?>">📰 Berita</a>
             <a href="<?= e(BASE_URL) ?>/admin/categories/" class="<?= $activeMenu === 'categories' ? 'active' : '' ?>">🏷️ Kategori</a>
 
-            <div class="section-label">Tampilan Website</div>
-            <?php foreach (settingsSchema() as $gKey => $g): ?>
-                <a href="<?= e(BASE_URL) ?>/admin/settings/?group=<?= e($gKey) ?>" class="<?= $activeMenu === 'settings-' . $gKey ? 'active' : '' ?>"><?= e($g['icon']) ?> <?= e($g['label']) ?></a>
-            <?php endforeach; ?>
-
-            <div class="section-label">Konten Halaman</div>
-            <?php foreach (contentSections() as $cKey => $c): ?>
-                <a href="<?= e(BASE_URL) ?>/admin/content/?section=<?= e($cKey) ?>" class="<?= $activeMenu === 'content-' . $cKey ? 'active' : '' ?>"><?= e($c['icon']) ?> <?= e($c['label']) ?></a>
-            <?php endforeach; ?>
-
-            <div class="section-label">Modul Landing Page</div>
+            <div class="section-label">Konten Landing Page</div>
             <a href="<?= e(BASE_URL) ?>/admin/gallery/" class="<?= $activeMenu === 'gallery' ? 'active' : '' ?>">🖼️ Galeri</a>
             <a href="<?= e(BASE_URL) ?>/admin/calendar/" class="<?= $activeMenu === 'calendar' ? 'active' : '' ?>">📅 Kalender & Event</a>
             <a href="<?= e(BASE_URL) ?>/admin/complaints/" class="<?= $activeMenu === 'complaints' ? 'active' : '' ?>" style="display:flex;justify-content:space-between;align-items:center">
