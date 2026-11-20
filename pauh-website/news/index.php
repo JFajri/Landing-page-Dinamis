@@ -3,7 +3,7 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 
 $pdo = getConnection();
 
-$perPage = max(3, min(24, (int) setting('news.per_page', '9')));
+$perPage = 9;
 $page    = max(1, (int) ($_GET['page'] ?? 1));
 $offset  = ($page - 1) * $perPage;
 
@@ -24,34 +24,48 @@ $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $newsList = $stmt->fetchAll();
 
-$pageTitle       = setting('sec.berita.title') . ' - ' . setting('site.name') . ($page > 1 ? ' (Halaman ' . $page . ')' : '');
-$pageDescription = 'Kumpulan berita, pengumuman, dan kegiatan resmi dari ' . setting('site.brand_title') . ', ' . setting('site.brand_subtitle') . '.';
-$navActive       = 'news';
-$canonicalUrl    = BASE_URL . '/news/' . ($page > 1 ? '?page=' . $page : '');
+$pageTitle       = 'Berita & Pengumuman - ' . SITE_NAME;
+$pageDescription = 'Kumpulan berita, pengumuman, dan kegiatan resmi dari Kecamatan Pauh, Kota Padang.';
 require __DIR__ . '/../includes/site_header.php';
 ?>
-        <section class="section-padding text-center page-top" id="berita" aria-labelledby="berita-title">
+        <section class="section-padding text-center" id="berita" aria-label="Semua berita Kecamatan Pauh" style="padding-top:150px">
             <div class="container">
-                <?php renderSectionHead('berita'); ?>
+                <div class="eyebrow">Informasi Terbaru</div>
+                <h2 class="section-title">Berita & Pengumuman</h2>
+                <p class="section-desc">Ikuti perkembangan terbaru, pengumuman penting, dan kegiatan di Kecamatan Pauh.</p>
 
                 <?php if (empty($newsList)): ?>
-                    <p class="empty-note"><?= e(setting('news.empty_text')) ?></p>
+                    <p style="color:var(--muted);font-size:14px;margin-top:44px">Belum ada berita yang dipublikasikan.</p>
                 <?php else: ?>
-                    <div class="berita-grid">
+                    <div class="berita-grid" role="list">
                         <?php foreach ($newsList as $item): ?>
-                            <?php require __DIR__ . '/../includes/news_card.php'; ?>
+                            <article class="berita-card reveal" role="listitem">
+                                <img loading="lazy" src="<?= $item['thumbnail'] ? e(UPLOAD_URL . $item['thumbnail']) : 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80' ?>" alt="<?= e($item['title']) ?>" class="berita-img">
+                                <div class="berita-meta">
+                                    <span aria-label="Tanggal">📅 <?= e(formatTanggalIndo($item['published_at'])) ?></span>
+                                    <?php if ($item['category_name']): ?>
+                                        <span class="berita-badge"><?= e($item['category_name']) ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="berita-body">
+                                    <h3><?= e($item['title']) ?></h3>
+                                    <p><?= e($item['excerpt']) ?></p>
+                                    <a href="<?= e(BASE_URL) ?>/news/detail.php?slug=<?= urlencode($item['slug']) ?>" class="berita-link">Baca Selengkapnya →</a>
+                                </div>
+                            </article>
                         <?php endforeach; ?>
                     </div>
 
                     <?php if ($totalPages > 1): ?>
-                        <nav class="pagination" aria-label="Halaman berita">
+                        <div style="margin-top:36px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
                             <?php for ($p = 1; $p <= $totalPages; $p++): ?>
                                 <a href="?page=<?= $p ?>"
-                                   class="page-link<?= $p === $page ? ' is-current' : '' ?>"
-                                   <?= $p === $page ? 'aria-current="page"' : '' ?>
-                                   aria-label="Halaman <?= $p ?>"><?= $p ?></a>
+                                   class="btn <?= $p === $page ? 'btn-main' : 'btn-sub' ?>"
+                                   style="<?= $p === $page ? '' : 'background:#eef4fb;color:var(--primary);border-color:var(--line)' ?>;min-width:44px;padding:0 14px">
+                                    <?= $p ?>
+                                </a>
                             <?php endfor; ?>
-                        </nav>
+                        </div>
                     <?php endif; ?>
                 <?php endif; ?>
             </div>

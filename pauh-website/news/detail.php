@@ -21,47 +21,39 @@ if (!$news) {
     http_response_code(404);
 }
 
-$pageTitle       = $news ? $news['title'] . ' - ' . setting('site.name') : 'Berita Tidak Ditemukan - ' . setting('site.name');
-$pageDescription = $news ? ($news['excerpt'] ?: makeExcerpt($news['content'], 155)) : 'Berita yang Anda cari tidak ditemukan atau belum dipublikasikan.';
-$navActive       = 'news';
-$noIndex         = !$news;
-if ($news) {
-    $ogType       = 'article';
-    $canonicalUrl = BASE_URL . '/news/detail.php?slug=' . urlencode($news['slug']);
-    if ($news['thumbnail']) {
-        $ogImage = UPLOAD_URL . $news['thumbnail'];
-    }
-}
+$pageTitle       = $news ? $news['title'] . ' - ' . SITE_NAME : 'Berita Tidak Ditemukan - ' . SITE_NAME;
+$pageDescription = $news ? $news['excerpt'] : 'Berita yang Anda cari tidak ditemukan atau belum dipublikasikan.';
 require __DIR__ . '/../includes/site_header.php';
 ?>
-        <section class="section-padding page-top" id="berita-detail" aria-label="Detail berita">
-            <div class="container container-narrow">
+        <section class="section-padding" id="berita-detail" aria-label="Detail berita" style="padding-top:150px">
+            <div class="container" style="max-width:820px">
 
                 <?php if (!$news): ?>
                     <div class="text-center">
                         <h2 class="section-title">Berita Tidak Ditemukan</h2>
-                        <p class="section-desc section-desc-flush">Berita yang Anda cari mungkin sudah dihapus, belum dipublikasikan, atau alamat tidak valid.</p>
+                        <p class="section-desc" style="margin:0 auto 30px">Berita yang Anda cari mungkin sudah dihapus, belum dipublikasikan, atau alamat tidak valid.</p>
                         <a href="<?= e(BASE_URL) ?>/news/" class="btn btn-main">← Kembali ke Daftar Berita</a>
                     </div>
                 <?php else: ?>
-                    <div class="berita-meta berita-meta-detail">
-                        <span><span aria-hidden="true">📅</span> <time datetime="<?= e(substr((string) $news['published_at'], 0, 10)) ?>"><?= e(formatTanggalIndo($news['published_at'])) ?></time></span>
+                    <div class="berita-meta" style="padding:0;justify-content:center;margin-bottom:14px">
+                        <span aria-label="Tanggal">📅 <?= e(formatTanggalIndo($news['published_at'])) ?></span>
                         <?php if ($news['category_name']): ?>
                             <span class="berita-badge"><?= e($news['category_name']) ?></span>
                         <?php endif; ?>
                     </div>
-                    <h1 class="section-title text-center article-title"><?= e($news['title']) ?></h1>
+                    <h1 class="section-title text-center" style="max-width:100%"><?= e($news['title']) ?></h1>
 
                     <?php if ($news['thumbnail']): ?>
-                        <img decoding="async" src="<?= e(UPLOAD_URL . $news['thumbnail']) ?>" alt="<?= e($news['title']) ?>" class="article-cover">
+                        <img loading="lazy" src="<?= e(UPLOAD_URL . $news['thumbnail']) ?>" alt="<?= e($news['title']) ?>"
+                             style="width:100%;max-height:420px;object-fit:cover;border-radius:16px;margin:24px 0;box-shadow:var(--shadow-sm)">
                     <?php endif; ?>
 
-                    <div class="article-content">
+                    <div class="reveal visible" style="font-size:15.5px;line-height:1.9;color:var(--ink)">
                         <?= nl2br(e($news['content'])) ?>
                     </div>
 
-                    <div class="section-action section-action-lg">
-                        <a href="<?= e(BASE_URL) ?>/news/" class="btn btn-solid">← Kembali ke Daftar Berita</a>
+                    <div style="margin-top:40px;text-align:center">
+                        <a href="<?= e(BASE_URL) ?>/news/" class="btn btn-sub" style="background:#eef4fb;color:var(--primary);border-color:var(--line)">← Kembali ke Daftar Berita</a>
                     </div>
                 <?php endif; ?>
 

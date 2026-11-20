@@ -1,5 +1,0 @@
-# Hanya file gambar yang dilayani; skrip tidak pernah dieksekusi dari folder upload.
-Options -Indexes -ExecCGI
-<FilesMatch "\.(php|phtml|phar|pl|py|cgi|sh)$">
-    Require all denied
-</FilesMatch>
