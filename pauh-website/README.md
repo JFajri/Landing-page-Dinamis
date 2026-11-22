@@ -207,3 +207,32 @@ Logo dipakai sebagai gambar (bukan emoji) di navbar, panel admin, dan favicon br
 1. **Lewat Admin** (disarankan): Tampilan Website → Identitas & SEO → *Logo resmi*. Unggah PNG/WEBP persegi
    (min. 256×256 px, latar transparan) — navbar, admin, dan favicon berganti sekaligus.
 2. **Lewat file:** timpa `assets/favicon.svg` (dipakai jika logo di Admin kosong, dan oleh halaman instalasi).
+
+## Persiapan Sebelum Tayang Publik (Production)
+
+Perubahan pada tahap ini (SEO, keamanan, aksesibilitas) dan hal yang perlu Anda lakukan di server:
+
+1. **Tetapkan alamat situs.** Salin `config/site.example.php` menjadi `config/site.php`, lalu isi
+   `BASE_URL` dengan alamat resmi (mis. `https://domain-anda.go.id`). Alamat ini dipakai untuk canonical,
+   `sitemap.xml`, dan tautan saat dibagikan, sehingga tidak bergantung pada header `Host` pengunjung.
+2. **Aktifkan HTTPS.** Setelah sertifikat SSL aktif, buka komentar 3 baris `RewriteCond/RewriteRule`
+   di `.htaccess` (bagian "paksa HTTPS").
+3. **Di belakang Cloudflare / proxy?** Isi `TRUSTED_IP_HEADER` di `config/site.php`. Tanpa itu, pembatasan
+   kirim formulir dan percobaan login menganggap semua pengunjung berasal dari satu alamat.
+4. **Tinjau teks Kebijakan Privasi** (`/privacy/`, file `privacy/index.php`) bersama PPID / bagian hukum instansi.
+   Teks ini disusun mengikuti cara kerja situs, bukan nasihat hukum.
+5. **Ganti gambar bawaan.** Gambar hero dan "Potensi Wilayah" awalnya mengambil dari situs pihak lain.
+   Unggah foto milik sendiri lewat Admin > Pengaturan Situs / Konten Halaman (lebih cepat, tidak
+   bergantung situs lain, dan bebas masalah hak cipta).
+6. **Kirim sitemap** `https://domain-anda/sitemap.xml` ke Google Search Console.
+7. **Jangan commit kredensial.** `config/database.php`, `config/site.php`, `config/.app_secret`, dan
+   `install.lock` ada di `.gitignore`. Bila repo ini sebelumnya memuatnya, lepaskan dari git
+   (`git rm --cached`) — **cadangkan dulu berkasnya di server**, karena `git pull` pada commit yang
+   menghapus berkas terlacak ikut menghapusnya di server.
+
+Yang ditambahkan: `.htaccess` (blokir `config/`, `includes/`, `database/`, header keamanan, kompresi, cache),
+`robots.txt` & `sitemap.xml` dinamis, data terstruktur (Organization/GovernmentOrganization, NewsArticle),
+formulir aspirasi dengan CSRF + honeypot + jeda minimum + batas 5 laporan/jam/IP + validasi kontak + persetujuan
+privasi, pembatasan percobaan login admin (5 gagal / 15 menit), batas waktu sesi admin, kontras warna sesuai
+WCAG AA (warna teks di atas warna aksen dipilih otomatis), ukuran teks minimum 11–12px, dan gambar cadangan
+lokal bila gambar eksternal gagal dimuat.

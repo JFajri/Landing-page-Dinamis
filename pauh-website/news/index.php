@@ -11,6 +11,13 @@ $totalStmt = $pdo->query("SELECT COUNT(*) FROM news WHERE status = 'published'")
 $totalNews = (int) $totalStmt->fetchColumn();
 $totalPages = max(1, (int) ceil($totalNews / $perPage));
 
+// Nomor halaman di luar rentang (mis. berita dihapus, atau tautan lama): arahkan ke halaman
+// terakhir yang ada, bukan menampilkan daftar kosong yang bisa ikut terindeks.
+if ($page > $totalPages) {
+    header('Location: ' . BASE_URL . '/news/' . ($totalPages > 1 ? '?page=' . $totalPages : ''), true, 302);
+    exit;
+}
+
 $stmt = $pdo->prepare("
     SELECT n.id, n.title, n.slug, n.excerpt, n.thumbnail, n.published_at, c.name AS category_name
     FROM news n

@@ -95,7 +95,7 @@ function siteDefaults(): array
         'news.empty_text'     => 'Belum ada berita yang dipublikasikan.',
         'news.fallback_image' => 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80',
         'gallery.empty_text'  => 'Belum ada foto galeri yang ditampilkan.',
-        'calendar.upcoming_title' => 'Acara Mendatang',
+        'calendar.upcoming_title' => 'Agenda Bulan Ini',
         'calendar.empty_text'     => 'Tidak ada acara bulan ini',
         'aspirasi.success_message' => 'Terima kasih! Laporan Anda telah berhasil terkirim dan akan segera ditindaklanjuti oleh staf Kantor Kecamatan Pauh.',
         'aspirasi.button_label'    => 'Kirim Laporan Warga',
@@ -298,6 +298,30 @@ function settingColor(string $key): string
         return $value;
     }
     return (string) (siteDefaults()[$key] ?? '#000000');
+}
+
+/**
+ * Warna teks (putih atau gelap) yang kontrasnya paling tinggi di atas warna latar $hex
+ * (rumus luminans relatif WCAG). Dipakai agar tombol/badge berlatar warna aksen tetap
+ * terbaca, apa pun warna aksen yang dipilih admin.
+ */
+function readableTextOn(string $hex): string
+{
+    if (!preg_match('/^#[0-9a-fA-F]{6}$/', $hex)) {
+        return '#142033';
+    }
+    $lin = static function (int $v): float {
+        $c = $v / 255;
+        return $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+    };
+    $lum = 0.2126 * $lin(hexdec(substr($hex, 1, 2)))
+         + 0.7152 * $lin(hexdec(substr($hex, 3, 2)))
+         + 0.0722 * $lin(hexdec(substr($hex, 5, 2)));
+
+    $dark  = 0.0166; // luminans #142033
+    $onWhite = 1.05 / ($lum + 0.05);
+    $onDark  = ($lum + 0.05) / ($dark + 0.05);
+    return $onWhite >= $onDark ? '#ffffff' : '#142033';
 }
 
 function handleSiteUpload(array $file): array

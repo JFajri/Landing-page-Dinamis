@@ -33,7 +33,9 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> <?= e(setting('footer.copyright')) ?></p>
+                <p>&copy; <?= date('Y') ?> <?= e(setting('footer.copyright')) ?>
+                    <span class="footer-sep" aria-hidden="true">·</span>
+                    <a href="<?= e(BASE_URL) ?>/privacy/">Kebijakan Privasi</a></p>
             </div>
         </div>
     </footer>

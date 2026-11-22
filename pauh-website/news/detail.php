@@ -31,6 +31,35 @@ if ($news) {
     if ($news['thumbnail']) {
         $ogImage = UPLOAD_URL . $news['thumbnail'];
     }
+
+    // Data terstruktur NewsArticle agar berita dapat tampil sebagai hasil kaya di mesin pencari.
+    $toIso = static function (?string $value): ?string {
+        $ts = $value ? strtotime($value) : false;
+        return $ts ? date('c', $ts) : null;
+    };
+    $articleLd = [
+        '@context'         => 'https://schema.org',
+        '@type'            => 'NewsArticle',
+        'headline'         => mb_substr($news['title'], 0, 110),
+        'description'      => $pageDescription,
+        'mainEntityOfPage' => $canonicalUrl,
+        'author'           => ['@type' => 'Organization', 'name' => setting('site.name')],
+        'publisher'        => [
+            '@type' => 'Organization',
+            'name'  => setting('site.name'),
+            'logo'  => ['@type' => 'ImageObject', 'url' => logoUrl()],
+        ],
+    ];
+    if ($toIso($news['published_at'])) {
+        $articleLd['datePublished'] = $toIso($news['published_at']);
+    }
+    if ($toIso($news['updated_at'] ?? null)) {
+        $articleLd['dateModified'] = $toIso($news['updated_at']);
+    }
+    if ($news['thumbnail']) {
+        $articleLd['image'] = [UPLOAD_URL . $news['thumbnail']];
+    }
+    $extraJsonLd = [$articleLd];
 }
 require __DIR__ . '/../includes/site_header.php';
 ?>
@@ -53,7 +82,7 @@ require __DIR__ . '/../includes/site_header.php';
                     <h1 class="section-title text-center article-title"><?= e($news['title']) ?></h1>
 
                     <?php if ($news['thumbnail']): ?>
-                        <img decoding="async" src="<?= e(UPLOAD_URL . $news['thumbnail']) ?>" alt="<?= e($news['title']) ?>" class="article-cover">
+                        <img decoding="async" fetchpriority="high" src="<?= e(UPLOAD_URL . $news['thumbnail']) ?>" alt="<?= e($news['title']) ?>" class="article-cover">
                     <?php endif; ?>
 
                     <div class="article-content">

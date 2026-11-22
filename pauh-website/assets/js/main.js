@@ -1,44 +1,52 @@
 // ===== FORM HANDLING (Aspirasi/Pengaduan - hanya ada di halaman beranda) =====
-// Data benar-benar dikirim & disimpan ke database lewat aspirasi/submit.php,
-// lalu Admin bisa melihat & memproses laporan di Admin > Aspirasi & Pengaduan.
+// Data dikirim lewat fetch() ke aspirasi/submit.php (CSRF token, honeypot, dan consent ikut
+// terkirim karena seluruh isian dibaca dari <form>). Pesan sukses/gagal tampil di halaman
+// (role="alert" agar dibacakan pembaca layar), bukan lewat alert() bawaan browser.
 const complaintForm = document.getElementById('complaintForm');
 const alertBox = document.getElementById('successAlert');
+const errorBox = document.getElementById('errorAlert');
 
 if (complaintForm && alertBox) {
+  const showError = (message) => {
+    alertBox.style.display = 'none';
+    if (!errorBox) return;
+    errorBox.textContent = message;
+    errorBox.style.display = 'block';
+    errorBox.scrollIntoView({ behavior: prefersReducedMotionEarly() ? 'auto' : 'smooth', block: 'center' });
+  };
+
   complaintForm.addEventListener('submit', function (e) {
     e.preventDefault();
 
     const submitBtn = complaintForm.querySelector('.submit-btn');
     const originalLabel = submitBtn ? submitBtn.textContent : '';
 
-    const formData = new FormData();
-    formData.append('name', (document.getElementById('nama') || {}).value || '');
-    formData.append('contact', (document.getElementById('email') || {}).value || '');
-    formData.append('kelurahan', (document.getElementById('kelurahanSelect') || {}).value || '');
-    formData.append('message', (document.getElementById('pesan') || {}).value || '');
+    if (errorBox) errorBox.style.display = 'none';
 
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Mengirim...';
     }
 
-    fetch((window.BASE_URL || '') + '/aspirasi/submit.php', {
+    fetch(complaintForm.getAttribute('action') || ((window.BASE_URL || '') + '/aspirasi/submit.php'), {
       method: 'POST',
-      body: formData
+      body: new FormData(complaintForm),
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
     })
-      .then(res => res.json())
+      .then(res => res.json().catch(() => ({ success: false, message: '' })))
       .then(data => {
         if (data.success) {
+          if (errorBox) errorBox.style.display = 'none';
           alertBox.style.display = 'block';
           complaintForm.reset();
-          setTimeout(() => alertBox.style.display = 'none', 5000);
-          alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          alertBox.scrollIntoView({ behavior: prefersReducedMotionEarly() ? 'auto' : 'smooth', block: 'center' });
         } else {
-          alert(data.message || 'Gagal mengirim laporan. Silakan periksa kembali isian Anda.');
+          showError(data.message || 'Gagal mengirim laporan. Silakan periksa kembali isian Anda.');
         }
       })
       .catch(() => {
-        alert('Gagal menghubungi server. Silakan coba lagi.');
+        showError('Gagal menghubungi server. Periksa koneksi internet Anda lalu coba lagi.');
       })
       .finally(() => {
         if (submitBtn) {
@@ -48,6 +56,26 @@ if (complaintForm && alertBox) {
       });
   });
 }
+
+function prefersReducedMotionEarly() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// ===== GAMBAR CADANGAN =====
+// Gambar yang dimuat dari situs lain bisa gagal (diblokir hotlink, dihapus, server mati).
+// Jika gagal, ganti satu kali dengan gambar placeholder lokal supaya kartu tidak "rusak".
+document.querySelectorAll('img[data-fallback]').forEach(img => {
+  img.addEventListener('error', function onError() {
+    img.removeEventListener('error', onError);
+    const fallback = img.getAttribute('data-fallback');
+    if (fallback && img.src !== fallback) img.src = fallback;
+  });
+  // Jika error sudah terjadi sebelum skrip ini berjalan.
+  if (img.complete && img.naturalWidth === 0) {
+    const fallback = img.getAttribute('data-fallback');
+    if (fallback && img.getAttribute('src') !== fallback) img.src = fallback;
+  }
+});
 
 // ===== NAVIGATION & MOBILE MENU (ada di semua halaman) =====
 const mobileMenuBtn = document.getElementById('mobile-menu');

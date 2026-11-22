@@ -97,6 +97,21 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- =====================================================================
+-- Ditambahkan pada tahap 4: pembatasan laju (anti-spam form aspirasi &
+-- pembatasan percobaan login). Kolom key_hash berisi HMAC, BUKAN alamat IP
+-- mentah. Baris lebih tua dari 24 jam dibersihkan otomatis.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+    id         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    bucket     VARCHAR(30) NOT NULL,
+    key_hash   CHAR(64)    NOT NULL,
+    created_at INT UNSIGNED NOT NULL,
+    KEY idx_rate_lookup (bucket, key_hash, created_at),
+    KEY idx_rate_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS content_items (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     section     VARCHAR(40)  NOT NULL,

@@ -24,7 +24,7 @@ $newComplaintsCount = (int) getConnection()->query("SELECT COUNT(*) FROM complai
     <meta name="theme-color" content="#0d2542">
     <?= faviconLinkTag() ?>
     <title><?= e($pageTitle) ?> - Admin <?= e(SITE_NAME) ?></title>
-    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/admin.css">
+    <link rel="stylesheet" href="<?= e(assetUrl('css/admin.css')) ?>">
 </head>
 <body>
 <div class="admin-layout">

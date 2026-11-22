@@ -14,6 +14,7 @@
  *   $ogType          (string) 'website' (default) atau 'article'
  *   $noIndex         (bool)   true untuk halaman 404 / yang tidak perlu diindeks
  *   $preloadImage    (string) URL gambar LCP yang perlu di-preload (hero di beranda)
+ *   $extraJsonLd     (array)  daftar data terstruktur tambahan (mis. NewsArticle di detail berita)
  */
 $pageTitle       = $pageTitle       ?? setting('site.home_title');
 $pageDescription = $pageDescription ?? setting('site.description');
@@ -28,7 +29,8 @@ if (!isset($canonicalUrl)) {
     $path = preg_replace('#/index\.php$#', '/', $path);
     $canonicalUrl = $origin . $path;
 }
-$ogImage = $ogImage ?? mediaUrl(setting('site.og_image'));
+// Gambar pratinjau saat dibagikan: khusus halaman > OG image di Admin > gambar hero.
+$ogImage = $ogImage ?? (mediaUrl(setting('site.og_image')) ?: mediaUrl(setting('hero.image')));
 
 $jsonLd = [
     '@context' => 'https://schema.org',
@@ -85,8 +87,11 @@ if ($ogImage !== '') {
     <script>document.documentElement.classList.add('js');</script>
     <link rel="stylesheet" href="<?= e(assetUrl('css/style.css')) ?>">
     <?php /* Harus SETELAH style.css agar warna dari pengaturan menimpa nilai bawaan di :root */ ?>
-    <style>:root{--primary:<?= settingColor('color.primary') ?>;--primary-2:<?= settingColor('color.primary2') ?>;--accent:<?= settingColor('color.accent') ?>}</style>
+    <style>:root{--primary:<?= settingColor('color.primary') ?>;--primary-2:<?= settingColor('color.primary2') ?>;--accent:<?= settingColor('color.accent') ?>;--on-accent:<?= readableTextOn(settingColor('color.accent')) ?>}</style>
     <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+    <?php foreach (($extraJsonLd ?? []) as $extraLd): ?>
+    <script type="application/ld+json"><?= json_encode($extraLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+    <?php endforeach; ?>
 </head>
 <body>
 

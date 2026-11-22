@@ -13,11 +13,12 @@
  */
 $newsHref  = BASE_URL . '/news/detail.php?slug=' . urlencode($item['slug']);
 $newsImage = $item['thumbnail'] ? UPLOAD_URL . $item['thumbnail'] : mediaUrl(setting('news.fallback_image'));
+if ($newsImage === '') {
+    $newsImage = assetUrl('img/placeholder.svg');
+}
 ?>
 <article class="berita-card reveal">
-    <?php if ($newsImage !== ''): ?>
-        <img loading="lazy" decoding="async" width="600" height="360" src="<?= e($newsImage) ?>" alt="" class="berita-img">
-    <?php endif; ?>
+    <img loading="lazy" decoding="async" width="600" height="360" src="<?= e($newsImage) ?>" alt="" class="berita-img" referrerpolicy="no-referrer" data-fallback="<?= e(assetUrl('img/placeholder.svg')) ?>">
     <div class="berita-meta">
         <span><span aria-hidden="true">📅</span> <time datetime="<?= e(substr((string) $item['published_at'], 0, 10)) ?>"><?= e(formatTanggalIndo($item['published_at'])) ?></time></span>
         <?php if ($item['category_name']): ?>

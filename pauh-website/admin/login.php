@@ -21,9 +21,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Username dan password wajib diisi.';
         } else {
             $pdo = getConnection();
-            if (attemptLogin($pdo, $username, $password)) {
+
+            // Pembatasan percobaan login: maksimal 5 kegagalan per (IP + username) dan
+            // 20 kegagalan per IP dalam 15 menit. Setelah itu login ditolak sementara.
+            $ip        = clientIp();
+            $userKey   = $ip . '|' . strtolower($username);
+            $window    = 900;
+            $locked    = rateLimitCount($pdo, 'login', $userKey, $window) >= 5
+                      || rateLimitCount($pdo, 'login_ip', $ip, $window) >= 20;
+
+            if ($locked) {
+                $errors[] = 'Terlalu banyak percobaan login yang gagal. Silakan coba lagi dalam 15 menit.';
+            } elseif (attemptLogin($pdo, $username, $password)) {
+                rateLimitClear($pdo, 'login', $userKey);
                 redirect('admin/index.php');
             } else {
+                rateLimitHit($pdo, 'login', $userKey);
+                rateLimitHit($pdo, 'login_ip', $ip);
                 $errors[] = 'Username atau password salah.';
             }
         }
@@ -39,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="theme-color" content="#0d2542">
     <?= faviconLinkTag() ?>
     <title>Login Admin - <?= e(SITE_NAME) ?></title>
-    <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/admin.css">
+    <link rel="stylesheet" href="<?= e(assetUrl('css/admin.css')) ?>">
 </head>
 <body>
 <div class="login-wrap">
@@ -56,16 +70,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?= csrfField() ?>
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" class="form-control" required autofocus value="<?= e($_POST['username'] ?? '') ?>">
+                <input type="text" id="username" name="username" class="form-control" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false" value="<?= e($_POST['username'] ?? '') ?>">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required>
+                <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
             </div>
             <button type="submit" class="btn btn-primary btn-block">Masuk</button>
         </form>
     </div>
 </div>
-<script src="<?= e(BASE_URL) ?>/assets/js/admin.js"></script>
+<script src="<?= e(assetUrl('js/admin.js')) ?>"></script>
 </body>
 </html>

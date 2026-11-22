@@ -1,0 +1,18 @@
+# Kredensial & berkas khusus server — JANGAN di-commit
+pauh-website/config/database.php
+pauh-website/config/site.php
+pauh-website/config/.schema_version
+pauh-website/config/.app_secret
+pauh-website/install.lock
+
+# Unggahan pengguna (dibuat lewat panel admin di server)
+pauh-website/uploads/news/*
+pauh-website/uploads/gallery/*
+pauh-website/uploads/site/*
+!pauh-website/uploads/*/.gitkeep
+!pauh-website/uploads/site/.htaccess
+
+# Sampah editor/OS
+.DS_Store
+Thumbs.db
+*.log

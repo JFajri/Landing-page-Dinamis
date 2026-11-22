@@ -1,0 +1,62 @@
+# =====================================================================
+# Portal Kecamatan Pauh — konfigurasi Apache (cPanel / shared hosting)
+# Semua blok dibungkus <IfModule> sehingga tidak menyebabkan error 500
+# bila sebuah modul tidak aktif di hosting Anda.
+# =====================================================================
+
+Options -Indexes
+DirectoryIndex index.php index.html
+
+# ---------------------------------------------------------------------
+# 1. Blokir file & folder internal
+#    (config/, includes/, database/ juga punya .htaccess sendiri sebagai
+#     lapisan kedua, jadi tetap terlindungi walau mod_rewrite mati.)
+# ---------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # --- Opsional: paksa HTTPS. Buka komentar 3 baris di bawah SETELAH
+    #     sertifikat SSL aktif dan https://domain-anda.com bisa dibuka. ---
+    # RewriteCond %{HTTPS} !=on
+    # RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    RewriteRule ^(config|includes|database)(/|$) - [F,L]
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+    RewriteRule \.(sql|lock|md|log|bak|old|orig|swp|ini|sh)$ - [NC,F,L]
+
+    # robots.txt & sitemap.xml dibuat dinamis (alamat domain & daftar berita otomatis)
+    RewriteRule ^robots\.txt$ robots.php [L]
+    RewriteRule ^sitemap\.xml$ sitemap.php [L]
+</IfModule>
+
+# ---------------------------------------------------------------------
+# 2. Header keamanan untuk semua respons (termasuk file statis)
+# ---------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>
+
+# ---------------------------------------------------------------------
+# 3. Kompresi & cache browser untuk aset statis
+#    (CSS/JS publik memakai ?v=waktu-ubah-file, jadi aman di-cache lama.)
+# ---------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>

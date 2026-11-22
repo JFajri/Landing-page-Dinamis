@@ -7,9 +7,29 @@
 
 require_once __DIR__ . '/bootstrap.php';
 
+// Halaman admin bersifat privat: jangan disimpan cache browser/proxy dan jangan diindeks.
+if (!headers_sent()) {
+    header('Cache-Control: no-store, max-age=0');
+    header('X-Robots-Tag: noindex, nofollow');
+}
+
+// Sesi admin berakhir otomatis setelah sekian detik tanpa aktivitas.
+if (!defined('ADMIN_IDLE_TIMEOUT')) {
+    define('ADMIN_IDLE_TIMEOUT', 7200);
+}
+
 function isLoggedIn(): bool
 {
-    return !empty($_SESSION['admin_id']);
+    if (empty($_SESSION['admin_id'])) {
+        return false;
+    }
+    $last = (int) ($_SESSION['admin_last_active'] ?? 0);
+    if ($last > 0 && (time() - $last) > ADMIN_IDLE_TIMEOUT) {
+        unset($_SESSION['admin_id'], $_SESSION['admin_name'], $_SESSION['admin_username'], $_SESSION['admin_role'], $_SESSION['admin_last_active']);
+        return false;
+    }
+    $_SESSION['admin_last_active'] = time();
+    return true;
 }
 
 /** Panggil di awal halaman admin yang wajib login. Redirect ke login jika belum. */
@@ -41,17 +61,23 @@ function attemptLogin(PDO $pdo, string $username, string $password): bool
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
-    if (!$user || !password_verify($password, $user['password'])) {
+    // Untuk username yang tidak ada, tetap jalankan password_verify() terhadap hash tiruan
+    // supaya waktu respons tidak membocorkan apakah username tersebut terdaftar.
+    $dummyHash = '$2y$10$iVjQPSl4JSmwJncWgpcUpuBQ8yTOJanQLLM5jJacdz0pUK2D5zDKO';
+    $valid     = password_verify($password, $user ? $user['password'] : $dummyHash);
+
+    if (!$user || !$valid) {
         return false;
     }
 
     // Regenerate session ID untuk mencegah session fixation
     session_regenerate_id(true);
 
-    $_SESSION['admin_id']       = $user['id'];
-    $_SESSION['admin_name']     = $user['name'];
-    $_SESSION['admin_username'] = $user['username'];
-    $_SESSION['admin_role']     = $user['role'];
+    $_SESSION['admin_id']          = $user['id'];
+    $_SESSION['admin_name']        = $user['name'];
+    $_SESSION['admin_username']    = $user['username'];
+    $_SESSION['admin_role']        = $user['role'];
+    $_SESSION['admin_last_active'] = time();
 
     return true;
 }

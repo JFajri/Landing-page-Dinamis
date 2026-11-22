@@ -179,6 +179,109 @@ function verifyCsrf(): bool
 }
 
 /* =========================================================
+ * KEAMANAN: ALAMAT IP, RAHASIA APLIKASI, PEMBATASAN LAJU
+ * ========================================================= */
+
+/**
+ * Alamat IP pengunjung. Secara bawaan hanya REMOTE_ADDR yang dipercaya, karena header
+ * seperti X-Forwarded-For bisa dipalsukan siapa saja. Jika situs berada di belakang proxy
+ * tepercaya (mis. Cloudflare), definisikan TRUSTED_IP_HEADER di config/site.php.
+ */
+function clientIp(): string
+{
+    if (defined('TRUSTED_IP_HEADER')) {
+        $forwarded = trim(explode(',', (string) ($_SERVER[TRUSTED_IP_HEADER] ?? ''))[0]);
+        if ($forwarded !== '' && filter_var($forwarded, FILTER_VALIDATE_IP)) {
+            return $forwarded;
+        }
+    }
+    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '0.0.0.0';
+}
+
+/**
+ * Rahasia acak khusus instalasi ini (disimpan di config/.app_secret, dibuat otomatis).
+ * Dipakai agar alamat IP tidak pernah disimpan mentah: yang tersimpan hanya HMAC-nya.
+ */
+function appSecret(): string
+{
+    static $secret = null;
+    if ($secret !== null) {
+        return $secret;
+    }
+    $file = __DIR__ . '/../config/.app_secret';
+    if (is_readable($file)) {
+        $stored = trim((string) file_get_contents($file));
+        if (strlen($stored) >= 32) {
+            return $secret = $stored;
+        }
+    }
+    $fresh = bin2hex(random_bytes(32));
+    if (@file_put_contents($file, $fresh, LOCK_EX) !== false) {
+        @chmod($file, 0600);
+        return $secret = $fresh;
+    }
+    // Folder config tidak bisa ditulis: pakai nilai turunan yang stabil per instalasi.
+    return $secret = hash('sha256', 'pauh|' . (defined('DB_NAME') ? DB_NAME : '') . '|' . (defined('DB_USER') ? DB_USER : '') . '|' . (defined('DB_PASS') ? DB_PASS : '') . '|' . __DIR__);
+}
+
+function hashSubject(string $subject): string
+{
+    return hash_hmac('sha256', $subject, appSecret());
+}
+
+/**
+ * Pembatasan laju sederhana berbasis tabel rate_limits. "subject" (mis. alamat IP) tidak
+ * disimpan mentah, hanya HMAC-nya. Semua fungsi gagal-terbuka: bila tabel belum ada atau
+ * database bermasalah, pengunjung tidak diblokir — hanya dicatat di error_log.
+ */
+function rateLimitCount(PDO $pdo, string $bucket, string $subject, int $windowSeconds): int
+{
+    try {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM rate_limits WHERE bucket = ? AND key_hash = ? AND created_at >= ?');
+        $stmt->execute([$bucket, hashSubject($subject), time() - $windowSeconds]);
+        return (int) $stmt->fetchColumn();
+    } catch (Throwable $e) {
+        error_log('rateLimitCount error: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+function rateLimitHit(PDO $pdo, string $bucket, string $subject): void
+{
+    try {
+        $pdo->prepare('INSERT INTO rate_limits (bucket, key_hash, created_at) VALUES (?, ?, ?)')
+            ->execute([$bucket, hashSubject($subject), time()]);
+        // Bersihkan catatan lama sesekali supaya tabel tidak membengkak.
+        if (random_int(1, 50) === 1) {
+            $pdo->prepare('DELETE FROM rate_limits WHERE created_at < ?')->execute([time() - 86400]);
+        }
+    } catch (Throwable $e) {
+        error_log('rateLimitHit error: ' . $e->getMessage());
+    }
+}
+
+function rateLimitClear(PDO $pdo, string $bucket, string $subject): void
+{
+    try {
+        $pdo->prepare('DELETE FROM rate_limits WHERE bucket = ? AND key_hash = ?')
+            ->execute([$bucket, hashSubject($subject)]);
+    } catch (Throwable $e) {
+        error_log('rateLimitClear error: ' . $e->getMessage());
+    }
+}
+
+/** Kontak pelapor valid jika berupa alamat email ATAU nomor telepon/WhatsApp (8–15 digit, boleh diawali +). */
+function isValidContact(string $contact): bool
+{
+    if (filter_var($contact, FILTER_VALIDATE_EMAIL)) {
+        return true;
+    }
+    $digits = preg_replace('/[\s().-]+/', '', $contact);
+    return (bool) preg_match('/^\+?[0-9]{8,15}$/', (string) $digits);
+}
+
+/* =========================================================
  * FILE UPLOAD (dipakai bersama oleh Berita & Galeri)
  * =========================================================
  * Mengembalikan array ['success' => bool, 'filename' => string|null, 'error' => string|null]
