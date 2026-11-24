@@ -93,6 +93,44 @@ pengecekan ini jadi sangat ringan (hanya baca file & bandingkan hash) sehingga
 tidak membebani request berikutnya. File `database/migration_v2_galeri_kalender_aspirasi.sql`
 tetap disediakan sebagai cara manual/alternatif lewat phpMyAdmin bila Anda lebih suka begitu.
 
+## Halaman Daftar, Detail & Halaman Statis (tahap 5)
+
+Setiap menu kini punya halaman sendiri, sehingga seluruh konten bisa dilihat di sana, sedangkan
+beranda hanya memuat **3–4 item per kategori** (jumlahnya diatur di Admin → Tampilan Website →
+*Modul & Jumlah Item*, dibatasi 1–4) plus tombol "Lihat Semua …".
+
+| Menu | Halaman daftar | Halaman detail | Dikelola di Admin |
+|------|----------------|----------------|-------------------|
+| Potensi Wilayah | `/potensi/` | `/potensi/detail.php?id=` | Konten Halaman → Potensi Wilayah |
+| Kelurahan | `/kelurahan/` | `/kelurahan/detail.php?id=` | Konten Halaman → Kelurahan |
+| Layanan | `/layanan/` | `/layanan/detail.php?id=` | Konten Halaman → Layanan Publik |
+| Berita | `/news/` | `/news/detail.php?slug=` | Berita |
+| Galeri | `/galeri/` (lightbox) | — | Galeri |
+| Kalender | `/kalender/` (kalender + daftar, filter Mendatang/Sudah Lewat/Semua) | `/kalender/detail.php?id=` | Kalender & Event |
+| Aspirasi | `/aspirasi/` (form + alur penanganan) | — | Aspirasi & Pengaduan (laporan tidak ditampilkan ke publik) |
+
+**Halaman statis:** `/profil/`, `/visi-misi/`, `/struktur-organisasi/`.
+Teks & gambar di Admin → Tampilan Website → *Halaman Profil*; poin Misi dan daftar pejabat di
+Konten Halaman → *Misi* / *Struktur Organisasi* (item pertama = pimpinan). **Teks Profil bawaan
+hanya contoh umum; Visi, Misi, dan Struktur sengaja dikosongkan** — isi dengan data resmi
+kecamatan (halaman menampilkan pesan "sedang disiapkan" selama belum diisi).
+
+Catatan teknis:
+- **Menu dropdown:** menu navigasi mendukung submenu satu tingkat (kolom *Induk Menu*). Menu "Profil"
+  dibuat otomatis. Menu bawaan lama (`#potensi`, `#layanan`, dst.) otomatis diarahkan ke halaman
+  barunya **sekali saja** (`migrateContent()` di `includes/settings.php`); menu yang sudah Anda
+  ubah sendiri tidak disentuh.
+- **Skema:** kolom `content` dan `parent_id` ditambahkan ke `content_items` secara otomatis
+  (`ALTER TABLE … ADD COLUMN` hanya jika belum ada; tidak ada DROP/MODIFY). User database perlu
+  izin ALTER; jika tidak, jalankan `database/schema.sql` bagian kolom tersebut secara manual.
+- **Isi detail:** kolom "Isi Halaman Detail" menerima teks biasa — paragraf dipisah baris kosong,
+  `- ` untuk daftar poin, `1. ` untuk daftar bernomor, `## ` untuk sub-judul (selalu di-escape).
+- **Card Layanan:** kartu berupa flex-column; tautan aksi selalu menempel di dasar kartu dan sejajar
+  antar-kartu meskipun panjang deskripsi berbeda (`.service-box` di `assets/css/style.css`).
+- **Navigasi responsif:** hamburger kini aktif di bawah 1100px karena jumlah menu bertambah.
+- **Zona waktu** bawaan `Asia/Jakarta` (untuk penentuan "hari ini" pada daftar agenda), bisa
+  ditimpa di `config/site.php`.
+
 ## Yang Dinamis vs. Yang Tetap Statis
 
 Mengikuti acceptance criteria di brief awal (hanya modul Berita yang wajib

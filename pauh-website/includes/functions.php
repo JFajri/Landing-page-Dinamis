@@ -20,9 +20,10 @@ if (!function_exists('mb_substr')) {
  * (dibandingkan lewat hash yang disimpan di config/.schema_version), jadi request
  * normal sehari-hari tidak kena beban tambahan sama sekali.
  *
- * AMAN: hanya menjalankan pernyataan CREATE TABLE IF NOT EXISTS dari schema.sql,
- * tidak pernah DROP/ALTER/DELETE, sehingga tabel & data yang sudah ada tidak
- * pernah tersentuh — hanya tabel yang BELUM ADA yang akan dibuat.
+ * AMAN: hanya menjalankan pernyataan CREATE TABLE IF NOT EXISTS dari schema.sql dan
+ * menambahkan kolom baru yang BELUM ADA (ALTER TABLE ... ADD COLUMN, lihat
+ * ensureColumn()). Tidak pernah DROP/DELETE/MODIFY, sehingga tabel, kolom, dan data
+ * yang sudah ada tidak pernah tersentuh.
  */
 function ensureDatabaseSchema(PDO $pdo): void
 {
@@ -57,11 +58,32 @@ function ensureDatabaseSchema(PDO $pdo): void
             }
             $pdo->exec($statement);
         }
+
+        // Kolom yang ditambahkan setelah rilis awal. CREATE TABLE IF NOT EXISTS tidak
+        // menambah kolom pada tabel yang sudah ada, jadi dicek satu per satu di sini.
+        ensureColumn($pdo, 'content_items', 'content',   'TEXT DEFAULT NULL');
+        ensureColumn($pdo, 'content_items', 'parent_id', 'INT UNSIGNED DEFAULT NULL');
+
         @file_put_contents($versionFile, $currentHash);
     } catch (Throwable $e) {
         // Sengaja tidak dilempar ulang: kalau auto-sync gagal (mis. user DB tidak
         // punya izin CREATE TABLE), halaman tetap harus bisa dimuat, bukan crash.
         error_log('ensureDatabaseSchema error: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Tambahkan kolom ke tabel yang sudah ada HANYA jika kolom itu belum ada.
+ * Nama tabel/kolom/definisi berasal dari kode (bukan input pengguna).
+ */
+function ensureColumn(PDO $pdo, string $table, string $column, string $definition): void
+{
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?'
+    );
+    $stmt->execute([$table, $column]);
+    if ((int) $stmt->fetchColumn() === 0) {
+        $pdo->exec('ALTER TABLE `' . $table . '` ADD COLUMN `' . $column . '` ' . $definition);
     }
 }
 

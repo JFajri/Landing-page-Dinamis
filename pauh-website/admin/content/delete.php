@@ -25,6 +25,10 @@ if (!$item) {
 
 try {
     $pdo->prepare('DELETE FROM content_items WHERE id = ? AND section = ?')->execute([$id, $sectionKey]);
+    if ($sectionKey === 'nav') {
+        // Submenu dari menu yang dihapus naik menjadi menu utama (tidak ikut terhapus/yatim).
+        $pdo->prepare("UPDATE content_items SET parent_id = NULL WHERE section = 'nav' AND parent_id = ?")->execute([$id]);
+    }
     deleteSiteImage($item['image']);
     setFlash('success', '"' . $item['title'] . '" berhasil dihapus.');
 } catch (PDOException $e) {

@@ -121,9 +121,19 @@ CREATE TABLE IF NOT EXISTS content_items (
     icon        VARCHAR(20)  DEFAULT NULL,
     image       VARCHAR(255) DEFAULT NULL,
     link_url    VARCHAR(255) DEFAULT NULL,
+    content     TEXT DEFAULT NULL,
+    parent_id   INT UNSIGNED DEFAULT NULL,
     sort_order  INT NOT NULL DEFAULT 0,
     status      ENUM('active','inactive') NOT NULL DEFAULT 'active',
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_content_section (section, status, sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================================
+-- Ditambahkan pada tahap 5: halaman daftar/detail & halaman statis.
+-- Kolom `content` (isi halaman detail) dan `parent_id` (submenu navigasi)
+-- pada content_items. Untuk database yang SUDAH ada, kedua kolom ini
+-- ditambahkan otomatis oleh ensureDatabaseSchema() (includes/functions.php)
+-- lewat ALTER TABLE ... ADD COLUMN yang hanya berjalan jika kolomnya belum ada.
+-- =====================================================================

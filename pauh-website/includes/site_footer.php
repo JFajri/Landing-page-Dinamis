@@ -43,6 +43,11 @@
     <!-- JAVASCRIPT -->
     <script>window.BASE_URL = <?= json_encode(BASE_URL) ?>;window.SITE_TEXT = <?= json_encode([
         'calendarEmpty' => setting('calendar.empty_text'),
+        // Batas agenda pada daftar kalender (0 = tanpa batas). Beranda membatasi 3–4 agenda
+        // dan menautkan sisanya ke /kalender/.
+        'calendarLimit' => (int) ($calendarLimit ?? 0),
+        'calendarMoreUrl'   => BASE_URL . '/kalender/',
+        'calendarMoreLabel' => setting('sec.kalender.more'),
     ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>;</script>
     <script src="<?= e(assetUrl('js/main.js')) ?>"></script>
 </body>

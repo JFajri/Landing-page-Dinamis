@@ -105,6 +105,40 @@ if (mobileMenuBtn && navMenu) {
   });
 }
 
+// ===== DROPDOWN SUBMENU (mis. "Profil"): buka/tutup lewat klik/Enter/Spasi =====
+// Di desktop dropdown juga terbuka saat hover (CSS). Tutup dengan Escape atau klik di luar.
+const subToggles = document.querySelectorAll('.nav-sub-toggle');
+
+function closeSubMenus(except) {
+  subToggles.forEach(btn => {
+    if (btn === except) return;
+    btn.setAttribute('aria-expanded', 'false');
+    btn.parentElement.classList.remove('open');
+  });
+}
+
+subToggles.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const item = btn.parentElement;
+    const isOpen = item.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(isOpen));
+    closeSubMenus(btn);
+  });
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.has-sub')) closeSubMenus();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const openBtn = document.querySelector('.has-sub.open > .nav-sub-toggle');
+  if (openBtn) {
+    closeSubMenus();
+    openBtn.focus();
+  }
+});
+
 // ===== LINK BERANDA: menuju URL utama, TANPA "#beranda" di address bar =====
 // Link beranda (data-home-link) di-render sebagai URL bersih (mis. "/"). Jika pengunjung
 // sudah berada di beranda, klik cukup menggulir ke atas dan membersihkan hash/query yang
@@ -301,14 +335,19 @@ function renderEvents() {
     return;
   }
 
-  monthEvents.forEach(([date, event]) => {
+  // Beranda membatasi jumlah agenda yang tampil (SITE_TEXT.calendarLimit); sisanya ada di
+  // halaman /kalender/. Nilai 0 = tanpa batas (halaman kalender lengkap).
+  const limit = (window.SITE_TEXT && Number(window.SITE_TEXT.calendarLimit)) || 0;
+  const visibleEvents = limit > 0 ? monthEvents.slice(0, limit) : monthEvents;
+
+  visibleEvents.forEach(([date, event]) => {
     const d = new Date(date + 'T00:00:00');
     const eventEl = document.createElement('div');
     eventEl.className = 'event-item';
 
     // event.time / event.location bersifat opsional (diisi Admin jika perlu).
-    // Data ini sudah di-escape di sisi server (lihat index.php) sebelum dikirim
-    // ke browser, jadi aman disisipkan langsung di sini.
+    // Data ini sudah di-escape di sisi server (lihat includes/page_helpers.php) sebelum dikirim
+    // ke browser (calendarEventsForJs), jadi aman disisipkan langsung di sini.
     const metaParts = [];
     if (event.time) metaParts.push('🕐 ' + event.time + ' WIB');
     if (event.location) metaParts.push('📍 ' + event.location);
@@ -318,12 +357,20 @@ function renderEvents() {
 
     eventEl.innerHTML = `
       <div class="event-date">${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
-      <div class="event-title">${event.title}</div>
+      <div class="event-title">${event.url ? `<a href="${event.url}">${event.title}</a>` : event.title}</div>
       ${metaLine}
       <div class="event-desc">${event.desc}</div>
     `;
     eventsContainerEl.appendChild(eventEl);
   });
+
+  if (visibleEvents.length < monthEvents.length && window.SITE_TEXT && window.SITE_TEXT.calendarMoreUrl) {
+    const more = document.createElement('a');
+    more.className = 'events-more';
+    more.href = window.SITE_TEXT.calendarMoreUrl;
+    more.textContent = `+${monthEvents.length - visibleEvents.length} agenda lainnya bulan ini →`;
+    eventsContainerEl.appendChild(more);
+  }
 }
 
 if (prevMonthBtn) {
@@ -342,7 +389,7 @@ if (calendarDaysEl) {
   renderCalendar();
 }
 
-// ===== GALERI: LIGHTBOX (hanya ada di halaman beranda) =====
+// ===== GALERI: LIGHTBOX (beranda dan halaman /galeri/) =====
 // Memakai elemen <dialog> bawaan browser: fokus terkunci di dalam dialog, tombol Esc
 // menutup, dan fokus kembali ke foto yang diklik — tanpa library tambahan.
 const galleryItems = document.querySelectorAll('.gallery-item[data-full]');
@@ -368,7 +415,17 @@ if (galleryItems.length) {
       }
       lightboxImg.src = full;
       lightboxImg.alt = caption;
-      lightboxCaption.textContent = caption;
+      const description = item.getAttribute('data-description') || '';
+      lightboxCaption.textContent = '';
+      const captionEl = document.createElement('strong');
+      captionEl.textContent = caption;
+      lightboxCaption.appendChild(captionEl);
+      if (description) {
+        const descEl = document.createElement('span');
+        descEl.className = 'lightbox-desc';
+        descEl.textContent = description;
+        lightboxCaption.appendChild(descEl);
+      }
       dialog.showModal();
     });
   });

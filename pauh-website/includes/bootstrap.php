@@ -21,6 +21,7 @@ if (!file_exists($dbConfigFile) || !file_exists($lockFile)) {
 require_once $dbConfigFile;
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/settings.php';
+require_once __DIR__ . '/page_helpers.php';
 
 // Auto-sync skema database: kalau ada tabel baru di database/schema.sql yang
 // belum ada di database Anda (mis. setelah update fitur seperti Galeri/Kalender/
@@ -34,3 +35,8 @@ ensureDatabaseSchema(getConnection());
 // kali saja agar situs yang sudah berjalan tampil persis seperti sebelumnya dan
 // bisa langsung dikelola dari Admin. Tidak pernah menimpa data yang sudah ada.
 seedDefaultContent(getConnection());
+
+// Migrasi konten satu kali untuk situs yang sudah berjalan (menu baru, submenu Profil,
+// tautan layanan). Hanya menyentuh data yang masih sama dengan bawaan lama; lihat
+// migrateContent() di includes/settings.php.
+migrateContent(getConnection());

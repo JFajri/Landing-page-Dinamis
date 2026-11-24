@@ -4,7 +4,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 $pdo = getConnection();
 
 // Ambil berita terbaru berstatus 'published' untuk beranda (jumlahnya diatur di Admin).
-$homeNewsCount = max(1, min(12, (int) setting('news.home_count', '3')));
+$homeNewsCount = homeCount('news.home_count');
 $stmt = $pdo->prepare("
     SELECT n.id, n.title, n.slug, n.excerpt, n.thumbnail, n.published_at, c.name AS category_name
     FROM news n
@@ -17,40 +17,35 @@ $stmt->bindValue(':limit', $homeNewsCount, PDO::PARAM_INT);
 $stmt->execute();
 $latestNews = $stmt->fetchAll();
 
-// Ambil foto galeri aktif (dikelola Admin > Galeri).
-$galleryPhotos = $pdo->query("
+// Ambil beberapa foto galeri aktif terbaru (dikelola Admin > Galeri). Semua foto ada di /galeri/.
+$stmt = $pdo->prepare("
     SELECT id, image, caption, description
     FROM gallery
     WHERE status = 'active'
-    ORDER BY created_at DESC
-")->fetchAll();
+    ORDER BY created_at DESC, id DESC
+    LIMIT :limit
+");
+$stmt->bindValue(':limit', homeCount('home.galeri_count', 4), PDO::PARAM_INT);
+$stmt->execute();
+$galleryPhotos = $stmt->fetchAll();
 
-// Ambil seluruh event kalender aktif (dikelola Admin > Kalender & Event) untuk
-// disuntikkan ke widget kalender vanilla JS (assets/js/main.js). Satu tanggal bisa
-// punya beberapa kegiatan, jadi dikelompokkan menjadi daftar per tanggal.
-// Semua field di-escape di sini supaya aman langsung dipakai lewat innerHTML di JS.
-$calendarEventsRaw = $pdo->query("
-    SELECT event_date, event_time, title, location, description
-    FROM events
-    WHERE status = 'active'
-    ORDER BY event_date ASC, event_time ASC
-")->fetchAll();
-
-$calendarEventsForJs = [];
-foreach ($calendarEventsRaw as $ev) {
-    $calendarEventsForJs[$ev['event_date']][] = [ // key YYYY-MM-DD, sesuai widget kalender
-        'title'    => e($ev['title']),
-        'desc'     => e($ev['description'] ?? ''),
-        'time'     => $ev['event_time'] ? e(substr($ev['event_time'], 0, 5)) : '',
-        'location' => e($ev['location'] ?? ''),
-    ];
-}
+// Seluruh agenda aktif disuntikkan ke widget kalender (assets/js/main.js) agar tanggal ber-event
+// tetap bertanda di kalender; DAFTAR agenda di sebelahnya dibatasi $calendarLimit (3–4 item) dan
+// sisanya ada di /kalender/. Semua field di-escape di calendarEventsForJs().
+$calendarEventsForJs = calendarEventsForJs($pdo);
+$calendarLimit       = homeCount('home.kalender_count', 4);
 
 // Data section yang dikelola dari Admin > Konten Halaman.
 $statItems      = contentItems('stats');
-$potensiItems   = contentItems('potensi');
-$kelurahanItems = contentItems('kelurahan');
-$layananItems   = contentItems('layanan');
+$potensiAll     = contentItems('potensi');
+$kelurahanItems = contentItems('kelurahan'); // lengkap: juga untuk dropdown form aspirasi
+$layananAll     = contentItems('layanan');
+
+// Beranda hanya memuat 3–4 item per kategori (jumlahnya diatur di Admin → Modul & Jumlah Item);
+// seluruh isinya ada di halaman daftar masing-masing.
+$potensiItems     = array_slice($potensiAll, 0, homeCount('home.potensi_count', 3));
+$kelurahanPreview = array_slice($kelurahanItems, 0, homeCount('home.kelurahan_count', 3));
+$layananItems     = array_slice($layananAll, 0, homeCount('home.layanan_count', 4));
 
 $heroImage = mediaUrl(setting('hero.image'));
 
@@ -97,68 +92,52 @@ require __DIR__ . '/includes/site_header.php';
         <?php endif; ?>
 
         <?php if (sectionOn('potensi') && $potensiItems): ?>
-        <!-- POTENSI & DESTINASI WILAYAH -->
+        <!-- POTENSI & DESTINASI WILAYAH (maks. 3–4 kartu; selengkapnya di /potensi/) -->
         <section class="section-padding text-center" id="potensi" aria-labelledby="potensi-title">
             <div class="container">
                 <?php renderSectionHead('potensi'); ?>
 
                 <div class="grid-3">
                     <?php foreach ($potensiItems as $card): ?>
-                        <?php $cardLink = trim((string) $card['link_url']); ?>
-                        <article class="card reveal<?= $cardLink !== '' ? ' is-link' : '' ?>">
-                            <?php if (!empty($card['image'])): ?>
-                                <img loading="lazy" decoding="async" width="600" height="400" src="<?= e(mediaUrl($card['image'])) ?>" alt="<?= e($card['title']) ?>" class="card-img" referrerpolicy="no-referrer" data-fallback="<?= e(assetUrl('img/placeholder.svg')) ?>">
-                            <?php endif; ?>
-                            <div class="card-body">
-                                <h3>
-                                    <?php if ($cardLink !== ''): ?>
-                                        <a href="<?= e(resolveLink($cardLink)) ?>" class="stretched-link"><?= e($card['title']) ?></a>
-                                    <?php else: ?>
-                                        <?= e($card['title']) ?>
-                                    <?php endif; ?>
-                                </h3>
-                                <p><?= e($card['description']) ?></p>
-                            </div>
-                        </article>
+                        <?php require __DIR__ . '/includes/card_potensi.php'; ?>
                     <?php endforeach; ?>
+                </div>
+                <div class="section-action">
+                    <a href="<?= e(BASE_URL) ?>/potensi/" class="btn btn-solid"><?= e(setting('sec.potensi.more')) ?></a>
                 </div>
             </div>
         </section>
         <?php endif; ?>
 
         <?php if (sectionOn('kelurahan') && $kelurahanItems): ?>
-        <!-- KELURAHAN -->
+        <!-- KELURAHAN (maks. 3–4; selengkapnya di /kelurahan/) -->
         <section class="section-padding text-center" id="kelurahan" aria-labelledby="kelurahan-title">
             <div class="container">
                 <?php renderSectionHead('kelurahan', ['count' => count($kelurahanItems)]); ?>
                 <ul class="kelurahan-grid">
-                    <?php foreach ($kelurahanItems as $kel): ?>
-                        <li class="kelurahan-item reveal"><?= e($kel['title']) ?></li>
+                    <?php foreach ($kelurahanPreview as $kel): ?>
+                        <?php require __DIR__ . '/includes/item_kelurahan.php'; ?>
                     <?php endforeach; ?>
                 </ul>
+                <div class="section-action">
+                    <a href="<?= e(BASE_URL) ?>/kelurahan/" class="btn btn-solid"><?= e(setting('sec.kelurahan.more')) ?></a>
+                </div>
             </div>
         </section>
         <?php endif; ?>
 
         <?php if (sectionOn('layanan') && $layananItems): ?>
-        <!-- LAYANAN PUBLIK -->
+        <!-- LAYANAN PUBLIK (maks. 4 kartu; selengkapnya di /layanan/) -->
         <section class="section-padding layanan-bg text-center" id="layanan" aria-labelledby="layanan-title">
             <div class="container">
                 <?php renderSectionHead('layanan'); ?>
                 <div class="grid-4">
                     <?php foreach ($layananItems as $svc): ?>
-                        <?php $svcLink = trim((string) $svc['link_url']); ?>
-                        <div class="service-box reveal<?= $svcLink !== '' ? ' is-link' : '' ?>">
-                            <?php if (!empty($svc['icon'])): ?>
-                                <div class="service-icon" aria-hidden="true"><?= e($svc['icon']) ?></div>
-                            <?php endif; ?>
-                            <h3><?= e($svc['title']) ?></h3>
-                            <p><?= e($svc['description']) ?></p>
-                            <?php if ($svcLink !== ''): ?>
-                                <a href="<?= e(resolveLink($svcLink)) ?>" class="service-link stretched-link"><?= e($svc['value'] !== null && $svc['value'] !== '' ? $svc['value'] : $svc['title']) ?></a>
-                            <?php endif; ?>
-                        </div>
+                        <?php require __DIR__ . '/includes/card_layanan.php'; ?>
                     <?php endforeach; ?>
+                </div>
+                <div class="section-action">
+                    <a href="<?= e(BASE_URL) ?>/layanan/" class="btn btn-solid"><?= e(setting('sec.layanan.more')) ?></a>
                 </div>
             </div>
         </section>
@@ -197,11 +176,11 @@ require __DIR__ . '/includes/site_header.php';
                 <?php else: ?>
                     <div class="gallery-grid">
                         <?php foreach ($galleryPhotos as $photo): ?>
-                            <button type="button" class="gallery-item reveal" data-full="<?= e(GALLERY_UPLOAD_URL . $photo['image']) ?>" data-caption="<?= e($photo['caption']) ?>" aria-label="Perbesar foto: <?= e($photo['caption']) ?>">
-                                <img loading="lazy" decoding="async" src="<?= e(GALLERY_UPLOAD_URL . $photo['image']) ?>" alt="<?= e($photo['caption']) ?>">
-                                <span class="gallery-overlay" aria-hidden="true">🔍</span>
-                            </button>
+                            <?php require __DIR__ . '/includes/item_gallery.php'; ?>
                         <?php endforeach; ?>
+                    </div>
+                    <div class="section-action">
+                        <a href="<?= e(BASE_URL) ?>/galeri/" class="btn btn-solid"><?= e(setting('sec.galeri.more')) ?></a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -214,33 +193,10 @@ require __DIR__ . '/includes/site_header.php';
             <div class="container">
                 <?php renderSectionHead('kalender'); ?>
 
-                <script>window.CALENDAR_EVENTS = <?= json_encode($calendarEventsForJs, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>;</script>
+                <?php require __DIR__ . '/includes/calendar_widget.php'; ?>
 
-                <div class="kalender-wrapper">
-                    <div class="kalender-container">
-                        <div class="calendar-header">
-                            <h3 id="calendar-month"><?= e(preg_replace('/^\d+\s+/', '', formatTanggalIndo(date('Y-m-d')))) ?></h3>
-                            <div class="calendar-nav">
-                                <button type="button" id="prev-month" aria-label="Bulan sebelumnya">&lt;</button>
-                                <button type="button" id="next-month" aria-label="Bulan berikutnya">&gt;</button>
-                            </div>
-                        </div>
-                        <div class="calendar-weekdays" aria-hidden="true">
-                            <div class="calendar-weekday">Min</div>
-                            <div class="calendar-weekday">Sen</div>
-                            <div class="calendar-weekday">Sel</div>
-                            <div class="calendar-weekday">Rab</div>
-                            <div class="calendar-weekday">Kam</div>
-                            <div class="calendar-weekday">Jum</div>
-                            <div class="calendar-weekday">Sab</div>
-                        </div>
-                        <div class="calendar-days" id="calendar-days" aria-label="Kalender tanggal"></div>
-                    </div>
-
-                    <div class="events-list">
-                        <h3><span aria-hidden="true">📋</span> <?= e(setting('calendar.upcoming_title')) ?></h3>
-                        <div id="events-container"></div>
-                    </div>
+                <div class="section-action">
+                    <a href="<?= e(BASE_URL) ?>/kalender/" class="btn btn-solid"><?= e(setting('sec.kalender.more')) ?></a>
                 </div>
             </div>
         </section>
@@ -252,48 +208,7 @@ require __DIR__ . '/includes/site_header.php';
             <div class="container">
                 <?php renderSectionHead('aspirasi'); ?>
 
-                <div class="form-container">
-                    <?php $_SESSION['aspirasi_form_at'] = time(); // dipakai submit.php: jeda minimum anti-bot ?>
-                    <div class="alert" id="successAlert" role="alert">
-                        ✅ <?= e(setting('aspirasi.success_message')) ?>
-                    </div>
-                    <div class="alert alert-error" id="errorAlert" role="alert"></div>
-                    <form id="complaintForm" action="<?= e(BASE_URL) ?>/aspirasi/submit.php" method="post">
-                        <?= csrfField() ?>
-                        <?php /* Honeypot: disembunyikan dari manusia, tapi biasanya diisi bot. */ ?>
-                        <div class="hp-field" aria-hidden="true">
-                            <label for="website">Jangan diisi jika Anda manusia</label>
-                            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="nama">Nama Lengkap <span aria-hidden="true">*</span></label>
-                            <input type="text" id="nama" name="name" autocomplete="name" minlength="2" maxlength="100" placeholder="Masukkan nama Anda" required aria-required="true">
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email atau Nomor WhatsApp <span aria-hidden="true">*</span></label>
-                            <input type="text" id="email" name="contact" autocomplete="email" maxlength="150" placeholder="nama@email.com atau 0812xxxxxxxx" required aria-required="true" aria-describedby="contactHint">
-                            <small class="form-hint" id="contactHint">Dipakai petugas untuk menghubungi Anda terkait laporan ini.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="kelurahanSelect">Pilih Kelurahan Domisili <span aria-hidden="true">*</span></label>
-                            <select id="kelurahanSelect" name="kelurahan" required aria-required="true">
-                                <option value="">-- Pilih Kelurahan --</option>
-                                <?php foreach ($kelurahanItems as $kel): ?>
-                                    <option value="<?= e($kel['title']) ?>"><?= e($kel['title']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="pesan">Pesan Pengaduan / Aspirasi <span aria-hidden="true">*</span></label>
-                            <textarea id="pesan" name="message" rows="4" minlength="10" maxlength="2000" placeholder="Tuliskan keluhan atau pengaduan Anda secara rinci..." required aria-required="true"></textarea>
-                        </div>
-                        <div class="form-check">
-                            <input type="checkbox" id="consent" name="consent" value="1" required aria-required="true">
-                            <label for="consent">Saya menyetujui data saya diproses sesuai <a href="<?= e(BASE_URL) ?>/privacy/" target="_blank" rel="noopener">Kebijakan Privasi</a>. <span aria-hidden="true">*</span></label>
-                        </div>
-                        <button type="submit" class="submit-btn"><?= e(setting('aspirasi.button_label')) ?></button>
-                    </form>
-                </div>
+                <?php require __DIR__ . '/includes/aspirasi_form.php'; ?>
             </div>
         </section>
         <?php endif; ?>

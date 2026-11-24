@@ -21,8 +21,27 @@ $id  = (int) ($_POST['id'] ?? 0);
 $dir = ($_POST['dir'] ?? '') === 'up' ? -1 : 1;
 
 try {
-    $stmt = $pdo->prepare('SELECT id FROM content_items WHERE section = ? ORDER BY sort_order ASC, id ASC');
-    $stmt->execute([$sectionKey]);
+    // Pada menu navigasi, urutan hanya berlaku di antara "saudara" (menu utama dengan menu
+    // utama, submenu dengan submenu dari induk yang sama).
+    $siblingSql = '';
+    $params     = [$sectionKey];
+    if ($sectionKey === 'nav') {
+        $cur = $pdo->prepare("SELECT parent_id FROM content_items WHERE id = ? AND section = 'nav'");
+        $cur->execute([$id]);
+        $parentId = $cur->fetchColumn();
+        if ($parentId === false) {
+            redirect($listUrl);
+        }
+        if ($parentId === null) {
+            $siblingSql = ' AND parent_id IS NULL';
+        } else {
+            $siblingSql = ' AND parent_id = ?';
+            $params[]   = (int) $parentId;
+        }
+    }
+
+    $stmt = $pdo->prepare('SELECT id FROM content_items WHERE section = ?' . $siblingSql . ' ORDER BY sort_order ASC, id ASC');
+    $stmt->execute($params);
     $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
 
     $pos = array_search($id, $ids, true);

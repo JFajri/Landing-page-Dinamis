@@ -17,6 +17,41 @@ foreach ($cfg['fields'] as $f) {
     $fieldDefs[$f['key']] = $f;
 }
 
+// Menu navigasi: tampilkan bertingkat (submenu langsung di bawah induknya). Tombol urutan
+// hanya menggeser di antara "saudara" (induk yang sama), sesuai admin/content/move.php.
+$isFirstSibling = [];
+$isLastSibling  = [];
+if ($sectionKey === 'nav') {
+    $titles = [];
+    foreach ($items as $row) {
+        $titles[(int) $row['id']] = $row['title'];
+    }
+    $fieldDefs['parent_id']['options'] = ['' => '—'] + array_map(fn($t) => $t, $titles);
+
+    $tops = [];
+    $kids = [];
+    foreach ($items as $row) {
+        $pid = (int) ($row['parent_id'] ?? 0);
+        if ($pid > 0 && isset($titles[$pid])) {
+            $kids[$pid][] = $row;
+        } else {
+            $tops[] = $row;
+        }
+    }
+    $ordered = [];
+    foreach ($tops as $i => $top) {
+        $ordered[] = $top;
+        $isFirstSibling[(int) $top['id']] = $i === 0;
+        $isLastSibling[(int) $top['id']]  = $i === count($tops) - 1;
+        foreach (($kids[(int) $top['id']] ?? []) as $j => $kid) {
+            $ordered[] = $kid;
+            $isFirstSibling[(int) $kid['id']] = $j === 0;
+            $isLastSibling[(int) $kid['id']]  = $j === count($kids[(int) $top['id']]) - 1;
+        }
+    }
+    $items = $ordered;
+}
+
 $pageTitle  = $cfg['label'];
 $activeMenu = 'content-' . $sectionKey;
 require __DIR__ . '/../../includes/header.php';
@@ -58,14 +93,14 @@ require __DIR__ . '/../../includes/header.php';
                                     <input type="hidden" name="section" value="<?= e($sectionKey) ?>">
                                     <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
                                     <input type="hidden" name="dir" value="up">
-                                    <button type="submit" class="btn btn-outline btn-sm btn-icon" aria-label="Naikkan urutan" <?= $i === 0 ? 'disabled' : '' ?>>↑</button>
+                                    <button type="submit" class="btn btn-outline btn-sm btn-icon" aria-label="Naikkan urutan" <?= ($isFirstSibling[(int) $row['id']] ?? $i === 0) ? 'disabled' : '' ?>>↑</button>
                                 </form>
                                 <form action="<?= e(BASE_URL) ?>/admin/content/move.php" method="post">
                                     <?= csrfField() ?>
                                     <input type="hidden" name="section" value="<?= e($sectionKey) ?>">
                                     <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
                                     <input type="hidden" name="dir" value="down">
-                                    <button type="submit" class="btn btn-outline btn-sm btn-icon" aria-label="Turunkan urutan" <?= $i === count($items) - 1 ? 'disabled' : '' ?>>↓</button>
+                                    <button type="submit" class="btn btn-outline btn-sm btn-icon" aria-label="Turunkan urutan" <?= ($isLastSibling[(int) $row['id']] ?? $i === count($items) - 1) ? 'disabled' : '' ?>>↓</button>
                                 </form>
                             </div>
                         </td>
@@ -78,7 +113,11 @@ require __DIR__ . '/../../includes/header.php';
                                 } elseif (isset($fieldDefs[$col]['options'])) {
                                     echo e($fieldDefs[$col]['options'][$cell] ?? $cell);
                                 } else {
-                                    echo $cell !== '' ? e(mb_strlen($cell) > 60 ? mb_substr($cell, 0, 60) . '…' : $cell) : '—';
+                                    $text = $cell !== '' ? e(mb_strlen($cell) > 60 ? mb_substr($cell, 0, 60) . '…' : $cell) : '—';
+                                    if ($sectionKey === 'nav' && $col === 'title' && (int) ($row['parent_id'] ?? 0) > 0) {
+                                        $text = '<span aria-hidden="true" style="color:var(--muted,#6b7a8d)">↳</span> ' . $text; // submenu
+                                    }
+                                    echo $text;
                                 }
                                 ?>
                             </td>

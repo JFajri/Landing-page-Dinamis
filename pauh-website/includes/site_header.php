@@ -110,14 +110,19 @@ if ($ogImage !== '') {
             </a>
             <button class="menu-toggle" id="mobile-menu" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-menu">☰</button>
             <ul class="nav-links" id="nav-menu">
-                <?php foreach (contentItems('nav') as $navItem):
+                <?php
+                /**
+                 * Satu menu (tautan biasa). Mengembalikan HTML <a>, atau '' bila menuju section yang
+                 * sedang dinonaktifkan admin. $isSub = item di dalam dropdown.
+                 */
+                $renderNavLink = function (array $navItem, bool $isSub) use ($isHome, $navActive): string {
                     $rawLink = trim((string) ($navItem['link_url'] ?? ''));
-                    $anchor  = ($rawLink !== '' && $rawLink[0] === '#') ? substr($rawLink, 1) : '';
-                    // Sembunyikan menu yang menuju section yang sedang dinonaktifkan.
-                    if ($anchor !== '' && !sectionOn($anchor)) {
-                        continue;
+                    $target  = navTargetSection($rawLink);
+                    if ($target !== '' && !sectionOn($target)) {
+                        return ''; // sembunyikan menu yang menuju section yang dinonaktifkan
                     }
-                    $isCta       = ($navItem['value'] ?? '') === 'cta';
+                    $anchor      = ($rawLink !== '' && $rawLink[0] === '#') ? substr($rawLink, 1) : '';
+                    $isCta       = !$isSub && ($navItem['value'] ?? '') === 'cta';
                     $isHomeLink  = ($rawLink === '' || $rawLink === '/');
                     $isPageMatch = !$isHomeLink && $anchor === '' && $navActive !== '' && trim($rawLink, '/') === $navActive;
 
@@ -129,19 +134,52 @@ if ($ogImage !== '') {
                     if ($isHomeLink) {
                         $attrs[] = 'data-home-link';
                     }
-                    if ($isHome && ($isHomeLink || $anchor !== '') && !$isCta) {
+                    if ($isHome && ($isHomeLink || $anchor !== '') && !$isCta && !$isSub) {
                         // Dipakai scroll-spy di main.js untuk menandai menu aktif.
                         $attrs[] = 'data-spy="' . e($isHomeLink ? 'beranda' : $anchor) . '"';
                     }
-                    if ($isHome && $isHomeLink) {
+                    if ($isHome && $isHomeLink && !$isSub) {
                         $classes[] = 'active'; // status awal; selanjutnya diatur scroll-spy
                     }
                     if ($isPageMatch) {
                         $classes[] = 'active';
                         $attrs[]   = 'aria-current="page"';
                     }
+                    return '<a href="' . e(resolveLink($rawLink)) . '"' . ($classes ? ' class="' . e(implode(' ', $classes)) . '"' : '') . ($attrs ? ' ' . implode(' ', $attrs) : '') . '>' . e($navItem['title']) . '</a>';
+                };
+
+                foreach (navTree(contentItems('nav')) as $navItem):
+                    if (!$navItem['children']) {
+                        $link = $renderNavLink($navItem, false);
+                        if ($link !== '') {
+                            echo '<li>' . $link . '</li>' . "\n";
+                        }
+                        continue;
+                    }
+
+                    // Menu dengan submenu: tombol pembuka dropdown + daftar tautan anak.
+                    $subLinks = [];
+                    $groupActive = false;
+                    foreach ($navItem['children'] as $child) {
+                        $html = $renderNavLink($child, true);
+                        if ($html !== '') {
+                            $subLinks[] = $html;
+                            $groupActive = $groupActive || str_contains($html, 'aria-current="page"');
+                        }
+                    }
+                    if (!$subLinks) {
+                        continue;
+                    }
+                    $subId = 'submenu-' . (int) $navItem['id'];
                 ?>
-                <li><a href="<?= e(resolveLink($rawLink)) ?>"<?= $classes ? ' class="' . e(implode(' ', $classes)) . '"' : '' ?><?= $attrs ? ' ' . implode(' ', $attrs) : '' ?>><?= e($navItem['title']) ?></a></li>
+                <li class="has-sub">
+                    <button type="button" class="nav-sub-toggle<?= $groupActive ? ' active' : '' ?>" aria-expanded="false" aria-controls="<?= e($subId) ?>"><?= e($navItem['title']) ?> <span class="caret" aria-hidden="true">▾</span></button>
+                    <ul class="sub-menu" id="<?= e($subId) ?>">
+                        <?php foreach ($subLinks as $html): ?>
+                            <li><?= $html ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </li>
                 <?php endforeach; ?>
             </ul>
         </nav>

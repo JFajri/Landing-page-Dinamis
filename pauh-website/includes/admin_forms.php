@@ -63,6 +63,11 @@ function readFieldValue(array $field, string $current, array &$errors): string
         case 'toggle':
             return $value === '1' ? '1' : '0';
 
+        case 'longtext':
+            // Samakan baris baru (Windows/Mac/Linux) agar paragraf dikenali konsisten.
+            $value = str_replace(["\r\n", "\r"], "\n", $value);
+            break;
+
         case 'color':
             if (!preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
                 $errors[] = $label . ': format warna tidak valid.';
@@ -129,6 +134,8 @@ function renderField(array $field, string $value): void
 
         if ($type === 'textarea') {
             echo '<textarea id="' . e($id) . '" name="' . $name . '" class="form-control" rows="3"' . $max . '>' . e($value) . '</textarea>';
+        } elseif ($type === 'longtext') {
+            echo '<textarea id="' . e($id) . '" name="' . $name . '" class="form-control" rows="12"' . $max . ' style="line-height:1.6">' . e($value) . '</textarea>';
         } elseif ($type === 'color') {
             $safe = preg_match('/^#[0-9a-fA-F]{6}$/', $value) ? $value : '#000000';
             echo '<div class="color-row"><input type="color" id="' . e($id) . '" name="' . $name . '" value="' . e($safe) . '" class="color-input">';

@@ -39,14 +39,14 @@ require __DIR__ . '/../includes/site_header.php';
 ?>
         <section class="section-padding text-center page-top" id="berita" aria-labelledby="berita-title">
             <div class="container">
-                <?php renderSectionHead('berita'); ?>
+                <?php renderSectionHead('berita', [], 'h1'); ?>
 
                 <?php if (empty($newsList)): ?>
                     <p class="empty-note"><?= e(setting('news.empty_text')) ?></p>
                 <?php else: ?>
                     <div class="berita-grid">
                         <?php foreach ($newsList as $item): ?>
-                            <?php require __DIR__ . '/../includes/news_card.php'; ?>
+                            <?php $hTag = 'h2'; require __DIR__ . '/../includes/news_card.php'; ?>
                         <?php endforeach; ?>
                     </div>
 

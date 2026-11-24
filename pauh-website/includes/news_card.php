@@ -10,7 +10,9 @@
  * tidak menemukan tautan ganda, dan teks tetap bisa diseleksi.
  *
  * Variabel yang dibutuhkan: $item (baris berita), diisi dari foreach pemanggil.
+ * Opsional: $hTag = tingkat judul (bawaan h3; halaman daftar memakai h2 di bawah H1).
  */
+$hTag      = $hTag ?? 'h3';
 $newsHref  = BASE_URL . '/news/detail.php?slug=' . urlencode($item['slug']);
 $newsImage = $item['thumbnail'] ? UPLOAD_URL . $item['thumbnail'] : mediaUrl(setting('news.fallback_image'));
 if ($newsImage === '') {
@@ -26,7 +28,7 @@ if ($newsImage === '') {
         <?php endif; ?>
     </div>
     <div class="berita-body">
-        <h3><a href="<?= e($newsHref) ?>" class="stretched-link"><?= e($item['title']) ?></a></h3>
+        <<?= $hTag ?>><a href="<?= e($newsHref) ?>" class="stretched-link"><?= e($item['title']) ?></a></<?= $hTag ?>>
         <p><?= e($item['excerpt']) ?></p>
         <span class="berita-link" aria-hidden="true"><?= e(setting('news.link_label')) ?></span>
     </div>

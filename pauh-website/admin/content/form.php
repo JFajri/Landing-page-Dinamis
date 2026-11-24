@@ -31,6 +31,15 @@ if ($id > 0) {
 }
 $isEdit = $row !== null;
 
+// Menu navigasi: pilihan "Induk Menu" dibuat dinamis dari menu utama yang ada.
+if ($sectionKey === 'nav') {
+    foreach ($cfg['fields'] as $i => $field) {
+        if ($field['key'] === 'parent_id') {
+            $cfg['fields'][$i]['options'] = navParentChoices($id);
+        }
+    }
+}
+
 // Nilai awal form.
 $form = ['status' => $isEdit ? $row['status'] : 'active'];
 foreach ($cfg['fields'] as $field) {
@@ -78,10 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($isEdit) {
                     $pdo->prepare('
                         UPDATE content_items
-                        SET title = ?, value = ?, description = ?, icon = ?, image = ?, link_url = ?, status = ?, updated_at = NOW()
+                        SET title = ?, value = ?, description = ?, icon = ?, image = ?, link_url = ?, content = ?, parent_id = ?, status = ?, updated_at = NOW()
                         WHERE id = ? AND section = ?
                     ')->execute([
                         (string) $col('title'), $val('value'), $val('description'), $val('icon'), $val('image'), $val('link_url'),
+                        $val('content'), $val('parent_id'),
                         $status, $id, $sectionKey,
                     ]);
                 } else {
@@ -90,10 +100,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $nextOrder = (int) $stmt->fetchColumn();
 
                     $pdo->prepare('
-                        INSERT INTO content_items (section, title, value, description, icon, image, link_url, sort_order, status, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                        INSERT INTO content_items (section, title, value, description, icon, image, link_url, content, parent_id, sort_order, status, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
                     ')->execute([
                         $sectionKey, (string) $col('title'), $val('value'), $val('description'), $val('icon'), $val('image'), $val('link_url'),
+                        $val('content'), $val('parent_id'),
                         $nextOrder, $status,
                     ]);
                 }

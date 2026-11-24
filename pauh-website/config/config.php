@@ -20,6 +20,10 @@ if (APP_DEBUG) {
     error_reporting(0);
 }
 
+// Zona waktu bawaan: WIB. Dipakai penentuan "hari ini" pada daftar agenda. Dapat ditimpa
+// dari config/site.php (date_default_timezone_set) bila instansi berada di zona lain.
+date_default_timezone_set('Asia/Jakarta');
+
 // Pengaturan khusus server (mis. BASE_URL permanen, header IP di belakang proxy).
 $siteOverride = __DIR__ . '/site.php';
 if (is_file($siteOverride)) {
@@ -62,7 +66,7 @@ if (!defined('BASE_URL')) {
 
     $script = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
     // Buang subfolder khusus agar BASE_URL selalu mengarah ke root aplikasi
-    $script = preg_replace('#/(admin|news|install|aspirasi|privacy)(/.*)?$#', '', $script);
+    $script = preg_replace('#/(admin|news|install|aspirasi|privacy|potensi|kelurahan|layanan|galeri|kalender|profil|visi-misi|struktur-organisasi)(/.*)?$#', '', $script);
     $script = rtrim($script, '/');
     define('BASE_URL', $protocol . $host . $script);
 }

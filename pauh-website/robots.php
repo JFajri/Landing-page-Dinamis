@@ -12,7 +12,9 @@ header('Cache-Control: public, max-age=3600');
 $basePath = (string) parse_url(BASE_URL, PHP_URL_PATH);
 
 echo "User-agent: *\n";
-foreach (['admin', 'install', 'aspirasi', 'config', 'includes', 'database'] as $dir) {
+foreach (['admin', 'install', 'config', 'includes', 'database'] as $dir) {
     echo 'Disallow: ' . $basePath . '/' . $dir . "/\n";
 }
+// Halaman /aspirasi/ bersifat publik; hanya endpoint pengiriman form yang tidak perlu diindeks.
+echo 'Disallow: ' . $basePath . "/aspirasi/submit.php\n";
 echo "\nSitemap: " . BASE_URL . "/sitemap.xml\n";
